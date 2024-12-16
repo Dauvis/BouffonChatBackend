@@ -1,0 +1,11 @@
+import { Schema, model } from 'mongoose';
+
+const profileSchema = new Schema({
+  googleId: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  defaultInstructions: { type: String, default: '' },
+  defaultTone: { type: String, default: '' }
+});
+
+export default model('Profile', profileSchema);

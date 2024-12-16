@@ -1,16 +1,26 @@
 {
-  "name": "backend",
+  "name": "bouffonchat",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
+    "axios": "^1.7.7",
+    "bunyan": "^1.8.15",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
-  }
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "mongoose": "^8.8.3",
+    "openai": "^4.73.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-jwt": "^4.0.1"
+  },
+  "description": ""
 }
