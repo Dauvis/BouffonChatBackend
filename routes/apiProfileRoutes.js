@@ -6,10 +6,10 @@ import apiUtil from "../util/apiUtil.js";
 
 const router = express.Router();
 
-router.get("/api/profile", authMiddleware, async (req, res) => {
+router.get("/api/v1/profile", authMiddleware, async (req, res) => {
   try {
     const userProfile = await profileService.findProfileByGoogleId(req.user.sub);
-    const { googleId, ...publicProfile } = userProfile._doc;
+    const { googleId, refreshToken, ...publicProfile } = userProfile._doc;
 
     logger.debug(`Profile fetched for Google Id: {googleId}`);
 
@@ -22,28 +22,21 @@ router.get("/api/profile", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/api/profile", authMiddleware, async (req, res) => {
+router.put("/api/v1/profile", authMiddleware, async (req, res) => {
   try {
-    const profile = req.user.profileId;
+    const profileId = req.user.profileId;
     const updates = req.body;
 
-    if (profile !== updates.profileId) {
-      logger.error(`Security violation attempting to change profile ${updates.profile_id} by profile ${profile}`);
-      res.status(403).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.security, "Knock it off buddy!!!"));
-      return;
-    }
-
     const data = {
-      googleId: req.user.sub,
       name: updates.profileName,
       email: updates.profileEmail,
       defaultTone: updates.profileTone,
       defaultInstructions: updates.profileInstructions,
     };
 
-    await profileService.updateProfile(profile, data);
+    await profileService.updateProfile(profileId, data);
 
-    logger.debug(`Profile ${profile} updated`);
+    logger.debug(`Profile ${profileId} updated`);
 
     res.status(204).send();
   } catch (error) {

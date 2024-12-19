@@ -4,6 +4,7 @@ import { __dirname } from "../util/envUtil.js";
 export const config = {
   httpsPort: process.env.HTTPS_PORT,
   jwtSecret: process.env.JWT_SECRET,
+  refreshSecret: process.env.REFRESH_SECRET,
   sessionSecret: process.env.SESSION_SECRET,
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -17,5 +18,7 @@ export const config = {
   fileLogLevel: process.env.FILE_LOG_LEVEL,
   consoleLogLevel: process.env.CONS_LOG_LEVEL,
   fileLogPath: process.env.FILE_LOG_PATH,
+  accessTokenLife: process.env.ACCESS_LIFE,
+  refreshTokenLife: process.env.REFRESH_LIFE,
   __dirname
 };

@@ -6,7 +6,7 @@ import logger from "../services/loggingService.js";
 
 const router = express.Router();
 
-router.post("/api/chat", authMiddleware, async (req, res) => {
+router.post("/api/v1/chat", authMiddleware, async (req, res) => {
     try {
         const newChatOptions = req.body;
         const { chatName, chatTone, chatType } = req.body;     

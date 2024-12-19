@@ -2,6 +2,11 @@ import Profile from '../models/profile.js';
 import mongoose from 'mongoose';
 import logger from "../services/loggingService.js";
 
+function excludePrivateProperties(fullProfile) {
+  const { googleId: _, refreshToken: __, ...publicProfile } = fullProfile;
+  return publicProfile;
+}
+
 /**
  * Find a profile by Google ID.
  * @param {string} googleId - The Google ID to search for.
@@ -9,7 +14,8 @@ import logger from "../services/loggingService.js";
  */
 async function findProfileByGoogleId(googleId) {
   try {
-    return await Profile.findOne({ googleId });
+    const profile = await Profile.findOne({ googleId });
+    return profile;
   } catch (error) {
     logger.error(`Error fetching profile using Google Id ${googleId}: ${error}`);
     throw new Error('Error fetching profile using Google Id');
@@ -24,10 +30,29 @@ async function findProfileByGoogleId(googleId) {
 async function createProfile(profileData) {
   try {
     const profile = new Profile(profileData);
-    return await profile.save();
+    return (await profile.save())._doc;
   } catch (error) {
     logger.error(`Error creating profile for Google Id ${profileData.googleId}: ${error}`);
     throw new Error('Error creating profile for Google Id');
+  }
+}
+
+/**
+ * Find a profile by identifier
+ * @param {*} profileId Identifier of the profile
+ * @returns {Promise<Object>} - profile found for identifier
+ */
+async function findProfile(profileId) {
+  if (!profileId) {
+    throw new Error("Call to findProfile() without profileId");
+  }
+
+  try {
+    const profile = await Profile.findById(profileId);
+    return profile;
+  } catch (error) {
+    logger.error(`Error fetching profile using Id ${profileId}: ${error}`);
+    throw new Error(`Error fetching profile using id: ${error.message}`);
   }
 }
 
@@ -50,7 +75,7 @@ async function updateProfile(profileId, profileData) {
       throw new Error(`Profile for ${identifier} not found`);
     }
 
-    return updatedProfile;
+    return updatedProfile._doc;
   } catch (error) {
     logger.error(`Error updating profile ${profileId}: ${error}`);
     throw new Error('Error updating profile');
@@ -80,5 +105,7 @@ export default {
   findProfileByGoogleId,
   createProfile,
   getOrCreateProfile,
-  updateProfile
+  updateProfile,
+  findProfile,
+  excludePrivateProperties
 };

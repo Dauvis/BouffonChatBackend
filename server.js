@@ -11,10 +11,12 @@ import apiOptionRoutes from "./routes/apiOptionRoutes.js";
 import './util/dbUtil.js';
 import logger from "./services/loggingService.js";
 import apiChatRoutes from "./routes/apiChatRoutes.js";
-import cors from "cors";
+import apiLoginRoutes from "./routes/apiLoginRoutes.js";
+
+//import cors from "cors";
 
 const app = express();
-app.use(cors());
+//app.use(cors());
 
 // Configure express-session
 app.use(
@@ -33,6 +35,7 @@ app.use("/", apiMessageRoutes);
 app.use("/", apiProfileRoutes);
 app.use("/", apiOptionRoutes);
 app.use("/", apiChatRoutes);
+app.use("/", apiLoginRoutes);
 
 https.createServer(config.sslOptions, app).listen(config.httpsPort, () => {
   logger.info(`Secure server running at https://localhost:${config.httpsPort}`);

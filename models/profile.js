@@ -5,7 +5,8 @@ const profileSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   defaultInstructions: { type: String, default: '' },
-  defaultTone: { type: String, default: '' }
+  defaultTone: { type: String, default: '' },
+  refreshToken: { type: String, default: ''},
 });
 
 export default model('Profile', profileSchema);

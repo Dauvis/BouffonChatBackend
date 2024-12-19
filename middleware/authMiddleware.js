@@ -1,22 +1,34 @@
-import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
 import apiUtil from "../util/apiUtil.js";
-import logger from "../services/loggingService.js"
+import logger from "../services/loggingService.js";
+import tokenUtil from "../util/tokenUtil.js";
+
+const unauthorizedResponse = (res) => {
+  logger.debug("Access by unauthorized user");
+  return res
+    .status(401)
+    .json(
+      apiUtil.apiErrorResponse(
+        apiUtil.errorCodes.unauthorized,
+        "User not authorized"
+      )
+    );
+};
 
 const ensureAuthenticated = (req, res, next) => {
   const token = req.session.token;
   if (token) {
-    jwt.verify(token, config.jwtSecret, (err, user) => {
-      if (err) {
-        logger.debug("Access by unauthorized user");
-        return res.status(401).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unauthorized, "User not authorized"));
-      }
-      req.user = user;
-      next();
-    });
+    const user = tokenUtil.verifyToken(token, config.jwtSecret);
+
+    if (!user) {
+      unauthorizedResponse(res);
+      return;
+    }
+
+    req.user = user;
+    next();
   } else {
-    logger.debug("Access by unauthorized user");
-    res.status(401).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unauthorized, "User not authorized"));
+    unauthorizedResponse(res);
   }
 };
 

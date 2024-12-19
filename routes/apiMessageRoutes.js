@@ -11,7 +11,7 @@ const openai = new OpenAI({
     apiKey: config.openAIKey,
   });
   
-router.post("/api/message", authMiddleware, async (req, res) => {
+router.post("/api/v1/message", authMiddleware, async (req, res) => {
   const userMessage = req.body.message;
 
   try {
