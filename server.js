@@ -12,6 +12,7 @@ import './util/dbUtil.js';
 import logger from "./services/loggingService.js";
 import apiChatRoutes from "./routes/apiChatRoutes.js";
 import apiLoginRoutes from "./routes/apiLoginRoutes.js";
+import cookieParser from "cookie-parser";
 
 //import cors from "cors";
 
@@ -31,6 +32,7 @@ app.use(
 app.use(passportService);
 app.use(passport.session());
 app.use(express.json());
+app.use(cookieParser());
 app.use("/", apiMessageRoutes);
 app.use("/", apiProfileRoutes);
 app.use("/", apiOptionRoutes);

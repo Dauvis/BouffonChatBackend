@@ -4,7 +4,10 @@ import logger from "../services/loggingService.js";
 import tokenUtil from "../util/tokenUtil.js";
 
 const unauthorizedResponse = (res, errorCode, message = null) => {
-  logger.debug("Access by unauthorized user: " + message || "no additional information given");
+  logger.debug(
+    "Access by unauthorized user: " + message ||
+      "no additional information given"
+  );
   return res
     .status(401)
     .json(
@@ -16,20 +19,30 @@ const unauthorizedResponse = (res, errorCode, message = null) => {
 };
 
 const ensureAuthenticated = (req, res, next) => {
-  const token = req.session.token;
-  if (token) {
-    const user = tokenUtil.verifyToken(token, config.jwtSecret);
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
-    if (!user) {
-      unauthorizedResponse(res, apiUtil.errorCodes.needRefresh, "access token verification failed");
-      return;
-    }
-
-    req.user = user;
-    next();
-  } else {
-    unauthorizedResponse(res, apiUtil.errorCodes.needAuthentication, "session lacks access token");
+  if (token == null) {
+    unauthorizedResponse(
+      res,
+      apiUtil.errorCodes.needAuthentication,
+      "access token not found"
+    );
+    return;
   }
+
+  const user = tokenUtil.verifyToken(token, config.jwtSecret);
+
+  if (!user) {
+    unauthorizedResponse(
+      res,
+      apiUtil.errorCodes.needRefresh,
+      "access token verification failed"
+    );
+    return;
+  }
+  req.user = user;
+  next();
 };
 
 export default ensureAuthenticated;

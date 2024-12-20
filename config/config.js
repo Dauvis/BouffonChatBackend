@@ -20,5 +20,7 @@ export const config = {
   fileLogPath: process.env.FILE_LOG_PATH,
   accessTokenLife: process.env.ACCESS_LIFE,
   refreshTokenLife: process.env.REFRESH_LIFE,
+  cookieLife: process.env.COOKIE_LIFE,
+  cookieSecret: process.env.COOKIE_SECRET,
   __dirname
 };
