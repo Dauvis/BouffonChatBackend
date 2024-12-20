@@ -9,11 +9,13 @@ import profileService from "../services/profileService.js";
 
 const router = express.Router();
 
-const respondUnauthorized = (res, message = "Authentication necessary") => {
-  return res
-    .status(401)
-    .json(apiUtil.apiErrorResponse(apiUtil.errorCodes.security, message));
+const respondUnauthorized = (res, errorCode, message) => {
+  return res.status(401).json(apiUtil.apiErrorResponse(errorCode, message));
 };
+
+const respondServerError = (res, errorCode, message) => {
+  return res.status(500).json(apiUtil.apiErrorResponse(errorCode, message));
+}
 
 const getTokenPayload = (profile) => ({
   sub: profile.googleId,
@@ -26,6 +28,11 @@ router.post("/api/v1/login", async (req, res) => {
   try {
     const idToken = req.body.token;
     const payload = await tokenUtil.verifyGoogleToken(idToken);
+
+    if (!payload) {
+      respondUnauthorized(res, apiUtil.errorCodes.notAuthenticated, "Google token verification failed");
+      return;
+    }
 
     const userData = {
       googleId: payload.sub,
@@ -52,15 +59,8 @@ router.post("/api/v1/login", async (req, res) => {
       profile: profileService.excludePrivateProperties(profileDoc),
     });
   } catch (error) {
-    logger.error(`Error handling Google authentication: ${error}`);
-    res
-      .status(401)
-      .json(
-        apiUtil.apiErrorResponse(
-          apiUtil.errorCodes.unauthorized,
-          "Failed to authenticate using Google token"
-        )
-      );
+    logger.error("Authentication failed: " + error.message);
+    respondUnauthorized(res, apiUtil.errorCodes.notAuthenticated, "Failure to authenticate with Google");
   }
 });
 
@@ -70,12 +70,15 @@ router.delete("/api/v1/login", authMiddleware, async (req, res) => {
   try {
     await profileService.updateProfile(profileId, { refreshToken: "" });
     req.session.destroy((err) => {
-      if (err) return respondUnauthorized(res, "Failed to log out");
+      if (err) {
+        logger.error("Failure to destroy session for profile: " + profileId);
+        return respondServerError(res, apiUtil.errorCodes.unknownError, "Failure to log out");
+      }
       res.status(200).json({ message: "Successfully logged out" });
     });
   } catch (error) {
-    logger.error(`Error logging out profile ${profileId}: ${error.message}`);
-    respondUnauthorized(res, "Failed to log out of the app");
+    logger.error(`Failure to log out profile ${profileId}: ${error.message}`);
+    respondServerError(res, apiUtil.errorCodes.unknownError, "Failed to log out of the app");
   }
 });
 
@@ -83,7 +86,7 @@ router.post("/api/v1/login/refresh", async (req, res) => {
   const { token } = req.session;
 
   if (!token) {
-    return respondUnauthorized(res);
+    return respondUnauthorized(res, apiUtil.errorCodes.needAuthentication, "Authentication is necessary");
   }
 
   try {
@@ -99,10 +102,8 @@ router.post("/api/v1/login/refresh", async (req, res) => {
 
     if (!isAuthorized) {
       req.session.token = null;
-      logger.debug(
-        `Refresh attempt with invalid token for profile ${profileId}`
-      );
-      return respondUnauthorized(res);
+      logger.debug(`Refresh attempt with invalid token for profile ${profileId}`);
+      return respondUnauthorized(res, apiUtil.errorCodes.needAuthentication, "Refresh failed, authentication necessary");
     }
 
     const accessToken = tokenUtil.createToken(
@@ -112,10 +113,10 @@ router.post("/api/v1/login/refresh", async (req, res) => {
     );
 
     req.session.token = accessToken;
-    res.status(200).json({ message: "Access token refreshed successfully" });
+    res.status(200).json({ message: "Access refreshed successfully" });
   } catch (error) {
-    logger.error(`Failed to refresh access for profile: ${error.message}`);
-    respondUnauthorized(res);
+    logger.error(`Refresh attempt failed: ${error.message}`);
+    respondUnauthorized(res, apiUtil.errorCodes.needAuthentication, "Refreshed failed, authentication necessary");
   }
 });
 

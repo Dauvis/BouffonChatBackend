@@ -1,5 +1,10 @@
 const errorCodes = {
-    unauthorized: "Unauthorized",
+    notAuthenticated: "NotAuthenticated",
+    needAuthentication: "NeedAuthentication",
+    needRefresh: "NeedRefresh",
+    unknownError: "UnknownError",
+    profileNotFound: "ProfileNotFound",
+
     gpt: "GPT",
     api: "API",
     security: "Security",

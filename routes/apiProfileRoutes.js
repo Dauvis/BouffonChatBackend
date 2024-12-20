@@ -9,16 +9,23 @@ const router = express.Router();
 router.get("/api/v1/profile", authMiddleware, async (req, res) => {
   try {
     const userProfile = await profileService.findProfileByGoogleId(req.user.sub);
+
+    if (!userProfile) {
+      logger.debug(`Unable to find profile: ${req.user.sub}`);
+      res.status(404).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.profileNotFound, "Unable to find profile"));
+      return;
+    }
+
     const { googleId, refreshToken, ...publicProfile } = userProfile._doc;
 
-    logger.debug(`Profile fetched for Google Id: {googleId}`);
+    logger.debug(`Profile ${publicProfile._id} fetched using Google Id ${googleId}`);
 
     res.json({
       profile: publicProfile,
     });  
   } catch (error) {
-    logger.error(`Failure to fetch profile: ${error}`);
-    res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.api, "Failed to fetch profile"));
+    logger.error(`Error when fetching profile: ${error}`);
+    res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, "Error when fetching profile"));
   }
 });
 
@@ -40,8 +47,8 @@ router.put("/api/v1/profile", authMiddleware, async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
-    logger.error(`Failed to update profile: ${error}`);
-    res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.api, "Failed to update profile"));
+    logger.error(`Error when updating profile: ${error}`);
+    res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, "Error when updating profile"));
   }
 });
 

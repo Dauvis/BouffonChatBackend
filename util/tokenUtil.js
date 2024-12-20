@@ -7,7 +7,7 @@ const client = new OAuth2Client(config.googleClientId);
 
 const createToken = ({ sub, email, name, profileId }, secret, life) => {
   if (!sub || !email || !profileId) {
-    throw new Error("Missing required fields to create token.");
+    throw new Error("insufficient data to create token");
   }
 
   return jwt.sign({ sub, email, name, profileId }, secret, { expiresIn: life + 's' });
@@ -30,7 +30,7 @@ async function verifyGoogleToken(idToken) {
     });
     return ticket.getPayload();
   } catch (error) {
-    logger.error("Google token verification failed:", error);
+    logger.debug("Google token failure: ", error);
     return null;
   }
 }
