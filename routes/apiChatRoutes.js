@@ -34,7 +34,7 @@ router.post("/api/v1/chat", authMiddleware, async (req, res) => {
         res.status(201).json({ chat: newChat });
     } catch (error) {
         logger.error(`Failure to create chat for profile ${req.user.profileId}: ${error}`);
-        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.api, 'Failed to create a new conversation'))
+        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, 'Failed to create a new conversation'))
     }
 });
 

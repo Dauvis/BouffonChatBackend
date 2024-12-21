@@ -14,6 +14,8 @@ const openai = new OpenAI({
 router.post("/api/v1/message", authMiddleware, async (req, res) => {
   const userMessage = req.body.message;
 
+  console.log(config.openAIKey);
+  
   try {
     const response = await openai.chat.completions.create({
       model: config.gptModel,
@@ -29,7 +31,7 @@ router.post("/api/v1/message", authMiddleware, async (req, res) => {
 
     res.json({ reply: gptResponse });
   } catch (error) {
-    logger.error(`Failure to communicate with GPT ${error.response.data}`);
+    logger.error(`Failure to communicate with GPT ${error.message}`);
     res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.gpt, "Failure to communicate with GPT API"));
   }
 });

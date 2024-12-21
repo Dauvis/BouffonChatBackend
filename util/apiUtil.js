@@ -4,11 +4,11 @@ const errorCodes = {
     needRefresh: "NeedRefresh",
     unknownError: "UnknownError",
     profileNotFound: "ProfileNotFound",
+    validation: "Validation",
 
     gpt: "GPT",
     api: "API",
     security: "Security",
-    validation: "Validation"
 }
 
 function apiErrorResponse(errorCode, errorMessage) {

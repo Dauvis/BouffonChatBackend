@@ -112,10 +112,11 @@ router.post("/api/v1/login/refresh", async (req, res) => {
     }
 
     const profile = await profileService.findProfile(cookieValues.profileId);
+    const tokenInfo = tokenUtil.verifyToken(profile.refreshToken, config.refreshSecret);
 
-    if (!profile) {
+    if (!profile || !tokenInfo || cookieValues.randomKey !== tokenInfo.key) {
       logger.error(
-        `Unable to refresh profile ${cookieValues.profileId} due to unpaired keys: ${cookieValues.randomKey} vs. ${profile.randomKey}`
+        `Unable to refresh profile ${cookieValues.profileId} due to unpaired keys: ${cookieValues.randomKey} vs. ${tokenInfo.key}`
       );
       return respondUnauthorized(
         res,

@@ -5,12 +5,12 @@ import logger from "../services/loggingService.js";
 
 const client = new OAuth2Client(config.googleClientId);
 
-const createToken = ({ sub, email, name, profileId }, secret, life) => {
+const createToken = ({ sub, email, name, profileId, key }, secret, life) => {
   if (!sub || !email || !profileId) {
     throw new Error("insufficient data to create token");
   }
 
-  return jwt.sign({ sub, email, name, profileId }, secret, { expiresIn: life + 's' });
+  return jwt.sign({ sub, email, name, profileId, key }, secret, { expiresIn: life + 's' });
 };
 
 const verifyToken = (token, secret) => {
