@@ -24,5 +24,3 @@ export const config = {
   cookieSecret: process.env.COOKIE_SECRET,
   __dirname
 };
-
-console.log(process.env.OPENAI_API_KEY);

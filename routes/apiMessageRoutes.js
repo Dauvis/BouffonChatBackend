@@ -13,8 +13,6 @@ const openai = new OpenAI({
   
 router.post("/api/v1/message", authMiddleware, async (req, res) => {
   const userMessage = req.body.message;
-
-  console.log(config.openAIKey);
   
   try {
     const response = await openai.chat.completions.create({

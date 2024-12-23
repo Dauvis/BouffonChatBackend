@@ -4,16 +4,16 @@ import {config} from "../config/config.js";
 import logger from "../services/loggingService.js";
 
 const setCookie = (res, name, value) => {
-    res.cookie(name, value, { maxAge: config.cookieLife * 1000, httpOnly: true });
+    res.cookie(name, value, { maxAge: config.cookieLife * 1000, httpOnly: true, secure: true, sameSite: 'None' });
 }
 
-const getCookie = (req, name) => {
+const getCookie = (req, name) => {    
     const value = req.cookies[name];
     return value || '';
 }
 
 const deleteCookie = (res, name) => {
-    res.clearCookie(name, { httpOnly: true });
+    res.clearCookie(name, { httpOnly: true, secure: true, sameSite: 'None' });
 }
 
 const encryptValues = (sub, profileId, randomKey) => {

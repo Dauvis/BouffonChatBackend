@@ -13,11 +13,10 @@ import logger from "./services/loggingService.js";
 import apiChatRoutes from "./routes/apiChatRoutes.js";
 import apiLoginRoutes from "./routes/apiLoginRoutes.js";
 import cookieParser from "cookie-parser";
-
-//import cors from "cors";
+import cors from "cors";
 
 const app = express();
-//app.use(cors());
+app.use(cors({ origin: 'https://localhost:8888', credentials: true }));
 
 // Configure express-session
 app.use(

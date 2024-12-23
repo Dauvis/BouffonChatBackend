@@ -99,9 +99,9 @@ router.delete("/api/v1/login", authMiddleware, async (req, res) => {
 });
 
 router.post("/api/v1/login/refresh", async (req, res) => {
-  try {
-    const cookieValues = cookieUtil.getRefreshCookie(req);
+  const cookieValues = cookieUtil.getRefreshCookie(req);
 
+  try {   
     if (!cookieValues) {
       logger.debug("Failure to refresh due to invalid refresh cookie");
       return respondUnauthorized(
@@ -132,7 +132,10 @@ router.post("/api/v1/login/refresh", async (req, res) => {
     );
 
     res.status(200).json({ token: accessToken });
-  } catch (error) {}
+  } catch (error) {    
+    logger.error(`Unable to refresh profile ${cookieValues.profileId}: ${error.message}`);
+    return respondServerError(res, apiUtil.errorCodes.unknownError, "Unable to refresh profile");
+  }
 });
 
 export default router;
