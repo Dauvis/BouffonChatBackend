@@ -1,7 +1,6 @@
 const errorCodes = {
     notAuthenticated: "NotAuthenticated",
     needAuthentication: "NeedAuthentication",
-    needRefresh: "NeedRefresh",
     unknownError: "UnknownError",
     profileNotFound: "ProfileNotFound",
     validation: "Validation",

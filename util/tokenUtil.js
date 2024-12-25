@@ -35,4 +35,12 @@ async function verifyGoogleToken(idToken) {
   }
 }
 
-export default { createToken, verifyGoogleToken, verifyToken };
+const getTokenPayload = (profile, randomKey = null) => ({
+  sub: profile.googleId,
+  email: profile.email,
+  name: profile.name,
+  profileId: profile._id,
+  key: randomKey || "",
+});
+
+export default { createToken, verifyGoogleToken, verifyToken, getTokenPayload };

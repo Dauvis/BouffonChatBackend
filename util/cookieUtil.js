@@ -16,8 +16,8 @@ const deleteCookie = (res, name) => {
     res.clearCookie(name, { httpOnly: true, secure: true, sameSite: 'None' });
 }
 
-const encryptValues = (sub, profileId, randomKey) => {
-    const catValue = `${sub}|${profileId}|${randomKey}`;
+const encryptValues = (profileId, randomKey) => {
+    const catValue = `${profileId}|${randomKey}`;
     const encrypted = CryptoJS.AES.encrypt(catValue, config.cookieSecret).toString();
     return encrypted;
 }
@@ -27,25 +27,25 @@ const decryptValue = (encrypted) => {
     const catValue = catBytes.toString(CryptoJS.enc.Utf8);
     const parsed = catValue.split("|");
 
-    return { sub: parsed[0], profileId: parsed[1], randomKey: parsed[2]};
+    return { profileId: parsed[0], randomKey: parsed[1]};
 }
 
-const setRefreshCookie = (res, {sub, profileId, randomKey}) => {
-    if (!sub || !profileId || !randomKey) {
+const setSessionCookie = (res, {profileId, randomKey}) => {
+    if (!profileId || !randomKey) {
         throw new Error("information missing for refresh cookie");
     }
 
     try {
-    const encrypted = encryptValues(sub, profileId, randomKey);
-    setCookie(res, "bc.refresh", encrypted);
+    const encrypted = encryptValues(profileId, randomKey);
+    setCookie(res, "bc.session", encrypted);
     } catch (error) {
         throw new Error("failure to set refresh cookie: " + error.message);
     }
 }
 
-const getRefreshCookie = (req) => {
+const getSessionCookie = (req) => {
     try {
-        const encrypted = getCookie(req, "bc.refresh");
+        const encrypted = getCookie(req, "bc.session");
         const values = decryptValue(encrypted);
         return values;
     } catch (error) {
@@ -54,9 +54,9 @@ const getRefreshCookie = (req) => {
     }
 }
 
-const deleteRefreshCookie = (res) => {
+const deleteSessionCookie = (res) => {
     try {
-        deleteCookie(res, "bc.refresh");
+        deleteCookie(res, "bc.session");
     } catch (error) {
         throw new Error("failure to delete refresh cookie: " + error.message);
     }
@@ -66,4 +66,4 @@ const getRandomKey = () => {
     return crypto.randomBytes(32).toString('hex');
 }
 
-export default {setCookie, getCookie, setRefreshCookie, getRefreshCookie, getRandomKey, deleteCookie, deleteRefreshCookie};
+export default {setCookie, getCookie, setSessionCookie, getSessionCookie, getRandomKey, deleteCookie, deleteSessionCookie};

@@ -1,12 +1,9 @@
 import "dotenv/config";
 import express from "express";
-import session from "express-session";
 import https from "https";
-import passport from "passport";
 import { config } from "./config/config.js";
 import apiMessageRoutes from "./routes/apiMessageRoutes.js";
 import apiProfileRoutes from "./routes/apiProfileRoutes.js";
-import {passportService} from "./services/passportService.js";
 import apiOptionRoutes from "./routes/apiOptionRoutes.js";
 import './util/dbUtil.js';
 import logger from "./services/loggingService.js";
@@ -18,18 +15,6 @@ import cors from "cors";
 const app = express();
 app.use(cors({ origin: 'https://localhost:8888', credentials: true }));
 
-// Configure express-session
-app.use(
-  session({
-    secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false },
-  })
-);
-
-app.use(passportService);
-app.use(passport.session());
 app.use(express.json());
 app.use(cookieParser());
 app.use("/", apiMessageRoutes);

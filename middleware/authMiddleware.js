@@ -2,6 +2,8 @@ import { config } from "../config/config.js";
 import apiUtil from "../util/apiUtil.js";
 import logger from "../services/loggingService.js";
 import tokenUtil from "../util/tokenUtil.js";
+import cookieUtil from "../util/cookieUtil.js";
+import accessTokenService from "../services/accessTokenService.js";
 
 const unauthorizedResponse = (res, errorCode, message = null) => {
   logger.debug(
@@ -18,29 +20,26 @@ const unauthorizedResponse = (res, errorCode, message = null) => {
     );
 };
 
-const ensureAuthenticated = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+const ensureAuthenticated = async (req, res, next) => {
+  const {profileId, randomKey} = cookieUtil.getSessionCookie(req);  
+  let token = accessTokenService.getToken(profileId);
 
-  if (token == null) {
-    unauthorizedResponse(
-      res,
-      apiUtil.errorCodes.needAuthentication,
-      "access token not found"
-    );
-    return;
+  if (!token) {
+    token = await accessTokenService.refreshToken(profileId, randomKey);
+
+    if (!token) {
+      unauthorizedResponse(res, apiUtil.errorCodes.needAuthentication, "Access needs authentication");
+      return;
+    }
   }
 
   const user = tokenUtil.verifyToken(token, config.jwtSecret);
 
   if (!user) {
-    unauthorizedResponse(
-      res,
-      apiUtil.errorCodes.needRefresh,
-      "access token verification failed"
-    );
+    unauthorizedResponse(res, apiUtil.errorCodes.errorCodes.needAuthentication, "Access needs authentication");
     return;
   }
+
   req.user = user;
   next();
 };
