@@ -101,7 +101,7 @@ async function getOrCreateProfile(userData) {
   return profile;
 }
 
-export default {
+const profileService =  {
   findProfileByGoogleId,
   createProfile,
   getOrCreateProfile,
@@ -109,3 +109,5 @@ export default {
   findProfile,
   excludePrivateProperties
 };
+
+export default profileService;

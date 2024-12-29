@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
-import {config} from "../config/config.js";
+import config from "../config/config.js";
 import { OAuth2Client } from "google-auth-library";
 import logger from "../services/loggingService.js";
 
 const client = new OAuth2Client(config.googleClientId);
 
-const createToken = ({ sub, email, name, profileId, key }, secret, life) => {
+function createToken({ sub, email, name, profileId, key }, secret, life) {
   if (!sub || !email || !profileId) {
     throw new Error("insufficient data to create token");
   }
@@ -13,7 +13,7 @@ const createToken = ({ sub, email, name, profileId, key }, secret, life) => {
   return jwt.sign({ sub, email, name, profileId, key }, secret, { expiresIn: life + 's' });
 };
 
-const verifyToken = (token, secret) => {
+function verifyToken(token, secret) {
   try {
     return jwt.verify(token, secret);
   } catch (error) {
@@ -35,12 +35,16 @@ async function verifyGoogleToken(idToken) {
   }
 }
 
-const getTokenPayload = (profile, randomKey = null) => ({
-  sub: profile.googleId,
-  email: profile.email,
-  name: profile.name,
-  profileId: profile._id,
-  key: randomKey || "",
-});
+function getTokenPayload(profile, randomKey = null) {
+  return ({
+    sub: profile.googleId,
+    email: profile.email,
+    name: profile.name,
+    profileId: profile._id,
+    key: randomKey || "",  
+  });
+}
 
-export default { createToken, verifyGoogleToken, verifyToken, getTokenPayload };
+const tokenUtil = { createToken, verifyGoogleToken, verifyToken, getTokenPayload };
+
+export default tokenUtil;

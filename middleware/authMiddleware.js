@@ -1,11 +1,11 @@
-import { config } from "../config/config.js";
+import config from "../config/config.js";
 import apiUtil from "../util/apiUtil.js";
 import logger from "../services/loggingService.js";
 import tokenUtil from "../util/tokenUtil.js";
 import cookieUtil from "../util/cookieUtil.js";
 import accessTokenService from "../services/accessTokenService.js";
 
-const unauthorizedResponse = (res, errorCode, message = null) => {
+function unauthorizedResponse(res, errorCode, message = null) {
   logger.debug(
     "Access by unauthorized user: " + message ||
       "no additional information given"
@@ -20,7 +20,7 @@ const unauthorizedResponse = (res, errorCode, message = null) => {
     );
 };
 
-const ensureAuthenticated = async (req, res, next) => {
+async function ensureAuthenticated(req, res, next) {
   const {profileId, randomKey} = cookieUtil.getSessionCookie(req);  
   let token = accessTokenService.getToken(profileId);
 

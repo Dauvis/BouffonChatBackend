@@ -30,4 +30,6 @@ async function createChat(profileId, chatParameters) {
     }
 }
 
-export default {createChat};
+const chatService = {createChat};
+
+export default chatService;

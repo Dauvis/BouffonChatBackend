@@ -1,24 +1,24 @@
 import NodeCache from "node-cache";
-import { config } from "../config/config.js";
+import config from "../config/config.js";
 import profileService from "./profileService.js";
 import tokenUtil from "../util/tokenUtil.js";
 import logger from "../services/loggingService.js";
 
 const accessTokenCache = new NodeCache();
 
-const setToken = (profileId, token) => {
+function setToken(profileId, token) {
     accessTokenCache.set(profileId, token, config.accessTokenLife);
 }
 
-const getToken = (profileId) => {
+function getToken(profileId) {
     return accessTokenCache.get(profileId);    
 }
 
-const removeToken = (profileId) => {
+function removeToken(profileId) {
     accessTokenCache.del(profileId);
 }
 
-const refreshToken = async (profileId, randomKey) => {
+async function refreshToken(profileId, randomKey) {
     try {
         const profile = await profileService.findProfile(profileId);
         const tokenInfo = tokenUtil.verifyToken(profile.refreshToken, config.refreshSecret);

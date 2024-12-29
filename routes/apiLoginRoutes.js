@@ -1,6 +1,6 @@
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
-import { config } from "../config/config.js";
+import config from "../config/config.js";
 import logger from "../services/loggingService.js";
 import apiUtil from "../util/apiUtil.js";
 import tokenUtil from "../util/tokenUtil.js";

@@ -1,6 +1,6 @@
 import express from "express";
 import OpenAI from "openai";
-import { config } from "../config/config.js";
+import config from "../config/config.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import apiUtil from "../util/apiUtil.js";
 import logger from "../services/loggingService.js"
@@ -30,7 +30,7 @@ router.post("/api/v1/message", authMiddleware, async (req, res) => {
     res.json({ reply: gptResponse });
   } catch (error) {
     logger.error(`Failure to communicate with GPT ${error.message}`);
-    res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.gpt, "Failure to communicate with GPT API"));
+    res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, "Failure to communicate with GPT API"));
   }
 });
 

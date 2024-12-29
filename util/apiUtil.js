@@ -4,10 +4,6 @@ const errorCodes = {
     unknownError: "UnknownError",
     profileNotFound: "ProfileNotFound",
     validation: "Validation",
-
-    gpt: "GPT",
-    api: "API",
-    security: "Security",
 }
 
 function apiErrorResponse(errorCode, errorMessage) {
@@ -18,4 +14,6 @@ function apiErrorResponse(errorCode, errorMessage) {
     };
 }
 
-export default { errorCodes, apiErrorResponse };
+const apiUtil = { errorCodes, apiErrorResponse };
+
+export default apiUtil;

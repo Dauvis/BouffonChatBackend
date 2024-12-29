@@ -1,5 +1,5 @@
 import bunyan from "bunyan";
-import { config } from "../config/config.js";
+import config from "../config/config.js";
 
 var logger = bunyan.createLogger({
   name: 'bouffonchat',

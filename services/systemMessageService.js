@@ -53,4 +53,6 @@ function buildSystemMessage(tone, instructions, notes) {
     return messageParts.join('');
 }
 
-export default { getToneOptionList, defaultModel, buildSystemMessage }
+const systemMessageService = { getToneOptionList, defaultModel, buildSystemMessage };
+
+export default systemMessageService;

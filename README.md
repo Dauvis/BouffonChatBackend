@@ -19,3 +19,5 @@ Once the core features of the MyChat project are completed, the following object
 See also...
 * [Original MyChat project](https://github.com/Dauvis/MyChat)
 * [Sister frontend project](https://github.com/Dauvis/BouffonChatFrontend)
+
+*Note: I experimented to see how well GPT is at teaching/mentoring. This will explain some of the oddities*

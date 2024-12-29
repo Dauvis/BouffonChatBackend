@@ -1,7 +1,7 @@
 import fs from "fs";
 import { __dirname } from "../util/envUtil.js";
 
-export const config = {
+const config = {
   httpsPort: process.env.HTTPS_PORT,
   jwtSecret: process.env.JWT_SECRET,
   refreshSecret: process.env.REFRESH_SECRET,
@@ -24,3 +24,5 @@ export const config = {
   cookieSecret: process.env.COOKIE_SECRET,
   __dirname
 };
+
+export default config;

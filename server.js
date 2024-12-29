@@ -1,16 +1,18 @@
 import "dotenv/config";
 import express from "express";
 import https from "https";
-import { config } from "./config/config.js";
+import config from "./config/config.js";
+import './util/dbUtil.js';
+import cookieParser from "cookie-parser";
+import cors from "cors";
+
+import logger from "./services/loggingService.js";
+
 import apiMessageRoutes from "./routes/apiMessageRoutes.js";
 import apiProfileRoutes from "./routes/apiProfileRoutes.js";
 import apiOptionRoutes from "./routes/apiOptionRoutes.js";
-import './util/dbUtil.js';
-import logger from "./services/loggingService.js";
 import apiChatRoutes from "./routes/apiChatRoutes.js";
 import apiLoginRoutes from "./routes/apiLoginRoutes.js";
-import cookieParser from "cookie-parser";
-import cors from "cors";
 
 const app = express();
 app.use(cors({ origin: 'https://localhost:8888', credentials: true }));
