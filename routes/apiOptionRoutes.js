@@ -5,6 +5,10 @@ import availableModels from "../config/modelData.js";
 
 const router = express.Router();
 
+const modelOptions = availableModels.map(entry => {
+  return { value: entry.id, label: entry.name};
+});
+
 router.get("/api/v1/options/tones", authMiddleware, (req, res) => {
   const toneOptions = systemMessageService.getToneOptionList();
   res.json({
@@ -13,12 +17,15 @@ router.get("/api/v1/options/tones", authMiddleware, (req, res) => {
 });
 
 router.get("/api/v1/options/models", authMiddleware, (req, res) => {
-  const modelOptions = availableModels.map(entry => {
-    return { value: entry.id, label: entry.name};
-  });
-
   res.json({
     options: modelOptions
+  });
+});
+
+router.get("/api/v1/options/all", authMiddleware, (req, res) => {
+  res.json({
+    tones: systemMessageService.getToneOptionList(),
+    models: modelOptions
   });
 });
 
