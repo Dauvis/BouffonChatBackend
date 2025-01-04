@@ -35,10 +35,11 @@ router.put("/api/v1/profile", authMiddleware, async (req, res) => {
     const updates = req.body;
 
     const data = {
-      name: updates.profileName,
-      email: updates.profileEmail,
-      defaultTone: updates.profileTone,
-      defaultInstructions: updates.profileInstructions,
+      name: updates.name,
+      email: updates.email,
+      defaultTone: updates.defaultTone,
+      defaultInstructions: updates.defaultInstructions,
+      defaultModel: updates.defaultModel,
     };
 
     await profileService.updateProfile(profileId, data);

@@ -6,6 +6,7 @@ const profileSchema = new Schema({
   email: { type: String, required: true, unique: true },
   defaultInstructions: { type: String, default: '' },
   defaultTone: { type: String, default: '' },
+  defaultModel: { type: String, default: '' },
   refreshToken: { type: String, default: ''},
 });
 
