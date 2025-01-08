@@ -44,6 +44,7 @@ router.put("/api/v1/profile", authMiddleware, async (req, res) => {
 
     if (!data.name || !data.email) {
       res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, "Name and emails fields must have a value"));
+      return;
     }
 
     await profileService.updateProfile(profileId, data);

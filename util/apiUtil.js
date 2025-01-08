@@ -4,6 +4,7 @@ const errorCodes = {
     unknownError: "UnknownError",
     profileNotFound: "ProfileNotFound",
     validation: "Validation",
+    templateNotFound: "TemplateNotFound"
 }
 
 function apiErrorResponse(errorCode, errorMessage) {

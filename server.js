@@ -13,6 +13,7 @@ import apiProfileRoutes from "./routes/apiProfileRoutes.js";
 import apiOptionRoutes from "./routes/apiOptionRoutes.js";
 import apiChatRoutes from "./routes/apiChatRoutes.js";
 import apiLoginRoutes from "./routes/apiLoginRoutes.js";
+import apiTemplateRoutes from "./routes/apiTemplateRoutes.js";
 
 const app = express();
 app.use(cors({ origin: 'https://localhost:8888', credentials: true }));
@@ -24,6 +25,7 @@ app.use("/", apiProfileRoutes);
 app.use("/", apiOptionRoutes);
 app.use("/", apiChatRoutes);
 app.use("/", apiLoginRoutes);
+app.use("/", apiTemplateRoutes);
 
 https.createServer(config.sslOptions, app).listen(config.httpsPort, () => {
   logger.info(`Secure server running at https://localhost:${config.httpsPort}`);

@@ -1,5 +1,4 @@
 import Chat from '../models/chatDocument.js';
-import mongoose from 'mongoose';
 import logger from "../services/loggingService.js";
 import systemMessageService from "../services/systemMessageService.js";
 
@@ -10,6 +9,7 @@ import systemMessageService from "../services/systemMessageService.js";
  */
 async function createChat(profileId, chatParameters) {
     try {
+        // doing it this way to mitigate shenanigans
         const newChatData = {
             owner: profileId,
             type: chatParameters.chatType,
