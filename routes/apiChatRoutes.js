@@ -10,23 +10,23 @@ const router = express.Router();
 router.post("/api/v1/chat", authMiddleware, async (req, res) => {
     try {
         const newChatOptions = req.body;
-        const { chatName, chatTone, chatType } = req.body;     
+        const { name, tone, type } = req.body;     
 
-        if (!chatName?.trim()) {
+        if (!name?.trim()) {
             res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, 'Conversation name was not supplied'));
             return;
         }
 
         // Note: tone will be subjected to further checks in createChat()
-        if (!chatTone?.trim())
+        if (!tone?.trim())
         {
             res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, 'Conversation tone was not supplied'));
             return;
         }
 
         const validTypes = new Set(['temp', 'active']);
-        if (!validTypes.has(chatType)) {
-            res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, `${chatType} is not a valid conversation type`));
+        if (!validTypes.has(type)) {
+            res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, `${type} is not a valid conversation type`));
             return;
         }
 

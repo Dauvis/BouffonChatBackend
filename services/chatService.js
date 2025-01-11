@@ -12,20 +12,20 @@ async function createChat(profileId, chatParameters) {
         // doing it this way to mitigate shenanigans
         const newChatData = {
             owner: profileId,
-            type: chatParameters.chatType,
-            name: chatParameters.chatName,
-            tone: chatParameters.chatTone,
-            instructions: chatParameters.chatInstructions,
-            notes: chatParameters.chatNotes,
+            type: chatParameters.type,
+            name: chatParameters.name,
+            tone: chatParameters.tone,
+            instructions: chatParameters.instructions,
+            notes: chatParameters.notes,
             tokens: 0,
             model: chatParameters.model || systemMessageService.defaultModel(),
-            systemMessage: systemMessageService.buildSystemMessage(chatParameters.chatTone, chatParameters.chatInstructions, chatParameters.chatNotes)
+            systemMessage: systemMessageService.buildSystemMessage(chatParameters.tone, chatParameters.instructions, chatParameters.notes)
         };
 
         const chatDoc = new Chat(newChatData);
         return await chatDoc.save();
     } catch (error) {
-        logger.error(`Error creating chat: ${chatParameters.chatType}, ${chatParameters.chatName}, ${chatParameters.chatTone}`);
+        logger.error(`Error creating chat: ${chatParameters.type}, ${chatParameters.name}, ${chatParameters.tone}`);
         throw new Error('Error creating new chat');
     }
 }
