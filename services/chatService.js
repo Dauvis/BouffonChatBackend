@@ -18,7 +18,7 @@ async function createChat(profileId, chatParameters) {
             instructions: chatParameters.chatInstructions,
             notes: chatParameters.chatNotes,
             tokens: 0,
-            model: systemMessageService.defaultModel(),
+            model: chatParameters.model || systemMessageService.defaultModel(),
             systemMessage: systemMessageService.buildSystemMessage(chatParameters.chatTone, chatParameters.chatInstructions, chatParameters.chatNotes)
         };
 
@@ -30,6 +30,74 @@ async function createChat(profileId, chatParameters) {
     }
 }
 
-const chatService = {createChat};
+async function fetchChatsAbridged(profileId) {
+    if (!profileId) {
+        throw Error("Attempt to call fetchChatsAbridged without a profile");
+    }
+
+    try {
+        const chats = await Chat.find({ owner: profileId}, { type: 1, name: 1 });
+        return chats;
+    } catch (error) {
+        logger.error(`Error fetching abridged chat list for profile ${profileId}`);
+        throw new Error('Error fetching abridged chat list');
+    }
+}
+
+async function findChat(profileId, chatId) {
+    if (!profileId || !chatId) {
+        throw Error("Attempt to call findChat without a profile or chat identifier");
+    }
+
+    try {
+        const chat = await Chat.find({owner: profileId, _id: chatId}).sort({ name: 1});
+        return chat;
+    } catch (error) {
+        logger.error(`Error fetching chat ${chatId} for profile ${profileId}`);
+        throw new Error('Error fetching chat');
+    }
+}
+
+async function updateChat(profileId, chatId, chatData) {
+    if (!profileId || !chatId) {
+        throw Error("Attempt to call updateChat without a profile or chat identifier");
+    }
+
+    try {
+        const updated = await Chat.findOneAndUpdate(
+            { owner: profileId, _id: chatId },
+            chatData,
+            { new: true, runValidators: true});
+
+        if (!updated) {
+            throw new Error(`Chat ${chatId} for profile ${profileId} not found`);
+        }
+
+        return updated._doc;
+    } catch (error) {
+        logger.error(`Error updating chat ${chatId} for profile ${profileId}`);
+        throw new Error('Error updating chat');
+    }
+}
+
+async function deleteChat(profileId, chatId) {
+    if (!profileId || !chatId) {
+        throw Error("Attempt to call deleteChat without a profile or chat identifier");
+    }
+
+    try {
+        const deleted = await Chat.findOneAndDelete(
+            { owner: profileId, _id: chatId },
+            { runValidators: true }
+        );
+
+        return deleted._doc;
+    } catch (error) {
+        logger.error(`Error deleting chat ${chatId} for profile ${profileId}`);
+        throw new Error('Error deleting chat');
+    }
+}
+
+const chatService = {createChat, fetchChatsAbridged, findChat, updateChat, deleteChat };
 
 export default chatService;
