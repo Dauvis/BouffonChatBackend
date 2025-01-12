@@ -62,7 +62,7 @@ router.get("/api/v1/chat/:chatId?", authMiddleware, async (req, res) => {
     }
 });
 
-router.put("/api/v1/chat/:chatId", authMiddleware, async (req, res) => {
+router.patch("/api/v1/chat/:chatId", authMiddleware, async (req, res) => {
     const { chatId } = req.params;
     const profileId = req.user.profileId;
     const updates = req.body;
