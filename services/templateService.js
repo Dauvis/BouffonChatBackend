@@ -16,6 +16,7 @@ async function createTemplate(profileId, templateParameters) {
             description: templateParameters.description,
             category: templateParameters.category,
             tone: templateParameters.tone,
+            model: templateParameters.model,
             instructions: templateParameters.instructions,
             notes: templateParameters.notes,
         };

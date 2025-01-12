@@ -40,6 +40,7 @@ router.put("/api/v1/template/:templateId", authMiddleware, async (req, res) => {
             description: updates.description,
             category: updates.category,
             tone: updates.tone,
+            model: updates.model,
             instructions: updates.instructions,
             notes: updates.notes
         };

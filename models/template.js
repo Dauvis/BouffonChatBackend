@@ -7,6 +7,7 @@ const templateSchema = new Schema({
   description: { type: String, default: '' },
   category: { type: String, required: true },
   tone: { type: String, default: '' },
+  model: { type: String, default: '' },
   instructions: { type: String, default: '' },
   notes: { type: String, default: '' },
 });
