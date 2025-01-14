@@ -6,17 +6,21 @@ const ToolCallSchema = new Schema({
     callArgs: { type: Object, default: '' },
     callFunction: { type: String, required: true },
     callResult: { type: Object, default: '' }
-});
+}, {_id: false });
 
-const ToolCallCollectionSchema = new Schema({
+const ToolCallRecordSchema = new Schema({
     assistantMessage: { type: String, required: true },
     toolCalls: [ToolCallSchema]
-});
+}, {_id: false });
+
+const GPTRecordSchema = new Schema({
+    toolCallCollection: [ToolCallRecordSchema]
+}, {_id: false })
 
 const ExchangeSchema = new Schema({
     userMessage: { type: String, required: true },
     assistantMessage: { type: String, required: true },
-    toolCallsCollections: [ToolCallCollectionSchema]
+    additionalData: { type: Schema.Types.Mixed }
 });
 
 const ChatSchema = new Schema({

@@ -32,7 +32,7 @@ async function createChat(profileId, chatParameters) {
 
 async function fetchChatsAbridged(profileId) {
     if (!profileId) {
-        throw Error("Attempt to call fetchChatsAbridged without a profile");
+        throw new Error("Attempt to call fetchChatsAbridged without a profile");
     }
 
     try {
@@ -46,21 +46,21 @@ async function fetchChatsAbridged(profileId) {
 
 async function findChat(profileId, chatId) {
     if (!profileId || !chatId) {
-        throw Error("Attempt to call findChat without a profile or chat identifier");
+        throw new Error("Attempt to call findChat without a profile or chat identifier");
     }
 
     try {
-        const chat = await Chat.find({owner: profileId, _id: chatId}).sort({ name: 1});
+        const chat = await Chat.find({owner: profileId, _id: chatId})
         return chat;
     } catch (error) {
-        logger.error(`Error fetching chat ${chatId} for profile ${profileId}`);
+        logger.error(`Error fetching chat ${chatId} for profile ${profileId}: {error}`);
         throw new Error('Error fetching chat');
     }
 }
 
 async function updateChat(profileId, chatId, chatData) {
     if (!profileId || !chatId) {
-        throw Error("Attempt to call updateChat without a profile or chat identifier");
+        throw new Error("Attempt to call updateChat without a profile or chat identifier");
     }
 
     try {
@@ -82,7 +82,7 @@ async function updateChat(profileId, chatId, chatData) {
 
 async function deleteChat(profileId, chatId) {
     if (!profileId || !chatId) {
-        throw Error("Attempt to call deleteChat without a profile or chat identifier");
+        throw new Error("Attempt to call deleteChat without a profile or chat identifier");
     }
 
     try {
@@ -98,6 +98,24 @@ async function deleteChat(profileId, chatId) {
     }
 }
 
-const chatService = {createChat, fetchChatsAbridged, findChat, updateChat, deleteChat };
+async function applyExchange(chat, tokens, userMessage, assistantMessage, additionalInfo) {
+    const curExchanges = chat.exchanges
+
+    const data = {
+        ...chat._doc,
+        tokens: tokens,
+        lastActivity: Date.now(),
+        exchanges: [
+            ...curExchanges,
+            { userMessage, assistantMessage, additionalInfo }
+        ]
+    }
+
+    const updated = await updateChat(chat.owner, chat._id, data)
+    const exchangeId = updated.exchanges[updated.exchanges.length - 1]._id
+    return exchangeId
+}
+
+const chatService = {createChat, fetchChatsAbridged, findChat, updateChat, deleteChat, applyExchange };
 
 export default chatService;
