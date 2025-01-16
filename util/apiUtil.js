@@ -5,7 +5,8 @@ const errorCodes = {
     profileNotFound: "ProfileNotFound",
     validation: "Validation",
     templateNotFound: "TemplateNotFound",
-    chatNotFound: "ChatNotFound"
+    chatNotFound: "ChatNotFound",
+    tokenLimit: "TokenLimit"
 }
 
 function apiErrorResponse(errorCode, errorMessage) {
