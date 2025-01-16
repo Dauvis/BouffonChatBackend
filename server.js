@@ -5,6 +5,7 @@ import config from "./config/config.js";
 import './util/dbUtil.js';
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import rateLimit from "express-rate-limit";
 
 import logger from "./services/loggingService.js";
 
@@ -18,6 +19,13 @@ import apiTemplateRoutes from "./routes/apiTemplateRoutes.js";
 const app = express();
 app.use(cors({ origin: 'https://localhost:8888', credentials: true }));
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+
+app.use(limiter);
 app.use(express.json());
 app.use(cookieParser());
 app.use("/", apiMessageRoutes);
