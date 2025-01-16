@@ -39,6 +39,42 @@ router.post("/api/v1/chat", authMiddleware, async (req, res) => {
     }
 });
 
+router.post("/api/v1/chat/:chatId/revert", authMiddleware, async (req, res) => {
+    const {chatId} = req.params;
+    const profileId = req.user.profileId;
+
+    try {
+        const exchange = await chatService.undoPreviousExchange(profileId, chatId);
+
+        if (exchange) {
+            res.json({ exchange });
+        } else {
+            res.status(204).send();
+        }
+    } catch (error) {
+        logger.error(`Failed to undo last exchange in chat ${chatId} for profile ${profileId}: ${error}`);
+        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, "Failed undo operation"));
+    }
+});
+
+router.post("/api/v1/chat/:chatId/restore", authMiddleware, async (req, res) => {
+    const {chatId} = req.params;
+    const profileId = req.user.profileId;
+
+    try {
+        const exchange = await chatService.redoPreviousExchange(profileId, chatId);
+
+        if (exchange) {
+            res.json({ exchange });
+        } else {
+            res.status(204).send();
+        }
+    } catch (error) {
+        logger.error(`Failed to undo last exchange in chat ${chatId} for profile ${profileId}: ${error}`);
+        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, "Failed redo operation"));
+    }
+});
+
 router.get("/api/v1/chat/:chatId?", authMiddleware, async (req, res) => {
     try {
         const { chatId } = req.params;

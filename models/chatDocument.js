@@ -34,7 +34,8 @@ const ChatSchema = new Schema({
     systemMessage: { type: String, required: true },
     lastActivity: { type: Date, default: Date.now },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Profile', required: true },
-    exchanges: [ExchangeSchema]
+    exchanges: [ExchangeSchema],
+    undoStack: [ExchangeSchema]
 });
 
 export default model('Chat', ChatSchema);

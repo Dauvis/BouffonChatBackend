@@ -108,7 +108,8 @@ async function applyExchange(chat, tokens, userMessage, assistantMessage, additi
         exchanges: [
             ...curExchanges,
             { userMessage, assistantMessage, additionalInfo }
-        ]
+        ],
+        undoStack: []
     }
 
     const updated = await updateChat(chat.owner, chat._id, data)
@@ -116,6 +117,89 @@ async function applyExchange(chat, tokens, userMessage, assistantMessage, additi
     return exchangeId
 }
 
-const chatService = {createChat, fetchChatsAbridged, findChat, updateChat, deleteChat, applyExchange };
+async function undoPreviousExchange(profileId, chatId) {
+    if (!profileId || !chatId) {
+        throw new Error("Attempt to call undoPreviousExchange without a profile or chat identifier");
+    }
+
+    try {
+        const chatList = await chatService.findChat(profileId, chatId);
+        const chat = chatList[0]._doc;
+
+        if (!chat) {
+            throw new Error(`Unable to find chat ${chatId} for profile ${profileId}`);
+        }
+
+        const newExchanges = chat.exchanges.slice(0, -1);
+        const curStack = chat.undoStack || [];
+        const sliced = chat.exchanges.slice(-1);
+        const last = sliced.length ? sliced[0] : null;
+    
+        if (last) {
+            const data = {
+                ...chat,
+                lastActivity: Date.now(),
+                exchanges: newExchanges,
+                undoStack: [...curStack, last ]
+            };
+
+            const updated = await updateChat(chat.owner, chat._id, data);
+
+            if (!updated) {
+                throw new Error(`Failed to update undo operation for chat ${chatId} for profile ${profileId}`);
+            }
+
+            return last;
+        } else {
+            return '';
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function redoPreviousExchange(profileId, chatId) {
+    if (!profileId || !chatId) {
+        throw new Error("Attempt to call redoPreviousExchange without a profile or chat identifier");
+    }
+
+    try {
+        const list = await chatService.findChat(profileId, chatId);
+        const chat = list[0]._doc;
+
+        if (!chat) {
+            throw new Error(`Unable to find chat ${chatId} for profile ${profileId}`);
+        }
+
+        const newStack = chat.undoStack.slice(0, -1);
+        const curExchanges = chat.exchanges || [];
+        const sliced = chat.undoStack.slice(-1);
+        const last = sliced.length ? sliced[0] : null;
+    
+        if (last) {
+            const data = {
+                ...chat,
+                lastActivity: Date.now(),
+                exchanges: [...curExchanges, last],
+                undoStack: newStack
+            };
+
+            const updated = await updateChat(chat.owner, chat._id, data);
+
+            if (!updated) {
+                throw new Error(`Failed to update redo operation for chat ${chatId} for profile ${profileId}`);
+            }
+
+            return last;
+        } else {
+            return '';
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+const chatService = {createChat, fetchChatsAbridged, findChat, updateChat, deleteChat, 
+    applyExchange, undoPreviousExchange, redoPreviousExchange };
 
 export default chatService;

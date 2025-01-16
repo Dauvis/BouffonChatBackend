@@ -9,4 +9,6 @@ mongoose.connect(config.mongoDBUri, {
 .then(() => logger.info('MongoDB connection established'))
 .catch((error) => logger.error(`MongoDB connection error: ${error}`));
 
+//mongoose.set('debug', true)
+
 export default mongoose;
