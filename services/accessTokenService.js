@@ -24,7 +24,7 @@ async function refreshToken(profileId, randomKey) {
         const tokenInfo = tokenUtil.verifyToken(profile.refreshToken, config.refreshSecret);
 
         if (!profile || !tokenInfo || randomKey !== tokenInfo.key) {
-            logger.error(`Unable to refresh profile ${profileId} due to unpaired keys: ${randomKey} vs. ${tokenInfo.key}`);
+            logger.warn(`Unable to refresh profile ${profileId} due to unpaired keys: ${randomKey} vs. ${tokenInfo.key}`);
             return null;
         }
 
@@ -37,7 +37,7 @@ async function refreshToken(profileId, randomKey) {
         setToken(profileId, accessToken);
         return accessToken;
     } catch (error) {
-        logger.error(`Error while refreshing token for profile ${profileId}: ${error.message}`);
+        logger.error(`Error while refreshing token for profile ${profileId}: ${error}`);
         return null;
     }
 }

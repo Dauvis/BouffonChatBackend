@@ -1,12 +1,19 @@
 import chatService from "./chatService.js";
 import messageServiceGPT from "./messageServiceGPT.js";
-import logger from "./loggingService.js"
+import errorUtil from "../util/errorUtil.js";
 
 function isStandardGPT(model) {
-    return (model === "gpt-4o" || model === "gpt-4o-mini")
+    return (model === "gpt-4o" || model === "gpt-4o-mini");
 }
 
 async function sendMessage(profileId, chatId, userMessage) {
+    if (!profileId || !chatId) {
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            "Attempt to call sendMessage without profile or chat identifiers",
+            "Internal error attempting to send message to assistant"
+        );
+    }
+
     try {
         const chats = await chatService.findChat(profileId, chatId);
         const chat = chats[0];
@@ -17,8 +24,7 @@ async function sendMessage(profileId, chatId, userMessage) {
             return { assistantMessage, tokens, exchangeId }
         }
     } catch (error) {
-        logger.error(`Error processing user message: ${error}`);
-        throw new Error("Error processing user message");
+        throw error;
     }
 }
 

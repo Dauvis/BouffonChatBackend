@@ -1,10 +1,9 @@
 import Profile from '../models/profile.js';
-import mongoose from 'mongoose';
-import logger from "../services/loggingService.js";
+import errorUtil from '../util/errorUtil.js';
 
 function excludePrivateProperties(fullProfile) {
-  const { googleId: _, refreshToken: __, ...publicProfile } = fullProfile;
-  return publicProfile;
+    const { googleId: _, refreshToken: __, ...publicProfile } = fullProfile;
+    return publicProfile;
 }
 
 /**
@@ -13,13 +12,15 @@ function excludePrivateProperties(fullProfile) {
  * @returns {Promise<Object|null>} - The found profile or null if not found.
  */
 async function findProfileByGoogleId(googleId) {
-  try {
-    const profile = await Profile.findOne({ googleId });
-    return profile;
-  } catch (error) {
-    logger.error(`Error fetching profile using Google Id ${googleId}: ${error}`);
-    throw new Error('Error fetching profile using Google Id');
-  }
+    try {
+        const profile = await Profile.findOne({ googleId });
+        return profile;
+    } catch (error) {
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Failed to fetch profile for Google id ${googleId}: ${error}`,
+            "Internal error attempting to load profile"
+        );
+    }
 }
 
 /**
@@ -28,32 +29,39 @@ async function findProfileByGoogleId(googleId) {
  * @returns {Promise<Object>} - The newly created profile.
  */
 async function createProfile(profileData) {
-  try {
-    const profile = new Profile(profileData);
-    return (await profile.save())._doc;
-  } catch (error) {
-    logger.error(`Error creating profile for Google Id ${profileData.googleId}: ${error}`);
-    throw new Error('Error creating profile for Google Id');
-  }
+    try {
+        const profile = new Profile(profileData);
+        return (await profile.save())._doc;
+    } catch (error) {
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Error creating profile for Google id ${profileData.googleId}: ${error}`,
+            "Internal error attempting to create profile"
+        );
+    }
 }
 
 /**
  * Find a profile by identifier
  * @param {*} profileId Identifier of the profile
- * @returns {Promise<Object>} - profile found for identifier
+ * @returns {object} - profile found for identifier
  */
 async function findProfile(profileId) {
-  if (!profileId) {
-    throw new Error("Call to findProfile() without profileId");
-  }
+    if (!profileId) {
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            "Call to findProfile without profile identifier",
+            "Internal error attempting to find profile"
+        );
+    }
 
-  try {
-    const profile = await Profile.findById(profileId);
-    return profile;
-  } catch (error) {
-    logger.error(`Error fetching profile using Id ${profileId}: ${error}`);
-    throw new Error(`Error fetching profile using id: ${error.message}`);
-  }
+    try {
+        const profile = await Profile.findById(profileId);
+        return profile;
+    } catch (error) {
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Failed to find profile ${profileId}: ${error}`,
+            "Internal error attempting to find profile"
+        );
+    }
 }
 
 /**
@@ -63,23 +71,27 @@ async function findProfile(profileId) {
  * @returns {Promise<Object>} - The newly created profile.
  */
 async function updateProfile(profileId, profileData) {
-  try {
-    const identifier = new mongoose.Types.ObjectId(profileId);
-    const updatedProfile = await Profile.findOneAndUpdate(
-      { _id: identifier },
-      profileData,
-      { new: true, runValidators: true }
-    );
+    try {
+        const updatedProfile = await Profile.findOneAndUpdate(
+            { _id: profileId },
+            profileData,
+            { new: true, runValidators: true }
+        );
 
-    if (!updatedProfile) {
-      throw new Error(`Profile for ${identifier} not found`);
+        if (!updatedProfile) {
+            throw errorUtil.error(404, errorUtil.errorCodes.profileNotFound,
+                `Unable to update profile ${profileId}`,
+                "Unable to fetch profile for update"
+            );
+        }
+
+        return updatedProfile._doc;
+    } catch (error) {
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Failed to update profile ${profileId}: ${error}`,
+            "Internal error attempting to update profile"
+        );
     }
-
-    return updatedProfile._doc;
-  } catch (error) {
-    logger.error(`Error updating profile ${profileId}: ${error}`);
-    throw new Error('Error updating profile');
-  }
 }
 
 /**
@@ -88,26 +100,27 @@ async function updateProfile(profileId, profileData) {
  * @returns {Promise<Object>} - The existing or new profile.
  */
 async function getOrCreateProfile(userData) {
-  let profile = await findProfileByGoogleId(userData.googleId);
-  if (!profile) {
-    profile = await createProfile({
-      googleId: userData.googleId,
-      name: userData.name,
-      email: userData.email,
-      defaultInstructions: userData.defaultInstructions || '',
-      defaultTone: userData.defaultTone || '',
-    });
-  }
-  return profile;
+    let profile = await findProfileByGoogleId(userData.googleId);
+
+    if (!profile) {
+        profile = await createProfile({
+            googleId: userData.googleId,
+            name: userData.name,
+            email: userData.email,
+            defaultInstructions: userData.defaultInstructions || '',
+            defaultTone: userData.defaultTone || '',
+        });
+    }
+    return profile;
 }
 
-const profileService =  {
-  findProfileByGoogleId,
-  createProfile,
-  getOrCreateProfile,
-  updateProfile,
-  findProfile,
-  excludePrivateProperties
+const profileService = {
+    findProfileByGoogleId,
+    createProfile,
+    getOrCreateProfile,
+    updateProfile,
+    findProfile,
+    excludePrivateProperties
 };
 
 export default profileService;

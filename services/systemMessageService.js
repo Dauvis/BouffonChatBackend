@@ -1,4 +1,5 @@
 import systemMessageData from "../config/systemMessageData.js";
+import errorUtil from "../util/errorUtil.js";
 
 function getToneOptionList()
 {
@@ -15,7 +16,10 @@ function buildSystemMessage(tone, instructions, notes) {
     const toneInstructions = systemMessageData.toneInstructions[tone] || systemMessageData.toneInstructions[systemMessageData.defaultTone] || '';
 
     if (!toneInstructions) {
-        throw Error(`Unable to find instructions for tone: ${tone}`);
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            `Unable to find instructions for tone ${tone}`,
+            "Internal error creating chat"
+        );
     }
 
     messageParts.push(systemMessageData.header);

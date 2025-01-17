@@ -1,10 +1,10 @@
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
-import apiUtil from "../util/apiUtil.js";
 import logger from "../services/loggingService.js"
 import messageService from "../services/messageService.js";
 import chatService from "../services/chatService.js";
 import chatUtil from "../util/chatUtil.js"
+import errorUtil from "../util/errorUtil.js";
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ router.post("/api/v1/message", authMiddleware, async (req, res) => {
     const chat = (await chatService.findChat(profileId, chatId))[0];
 
     if (chat && chatUtil.chatLimitPercent(chat) >= 100) {
-      res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.tokenLimit, "Conversation has reached its limit. Please start a new one."));
+      errorUtil.response(res, 400, errorUtil.errorCodes.validation, "Chat has reached it limit. Please start a new one.");
       return;
     }
 
@@ -28,8 +28,7 @@ router.post("/api/v1/message", authMiddleware, async (req, res) => {
 
     res.json({ chatId, tokens, exchangeId, assistantMessage });
   } catch (error) {
-    logger.error(`Failure to communicate with AI API: ${error.message}`);
-    res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, "Failure to communicate with AI API"));
+    errorUtil.handleRouterError(res, error, "POST /api/v1/message");
   }
 });
 

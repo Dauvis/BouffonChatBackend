@@ -1,9 +1,8 @@
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
 import chatService from "../services/chatService.js";
-import apiUtil from "../util/apiUtil.js";
-import logger from "../services/loggingService.js";
-import profile from "../models/profile.js";
+import errorUtil from "../util/errorUtil.js";
+import chatUtil from "../util/chatUtil.js";
 
 const router = express.Router();
 
@@ -13,20 +12,24 @@ router.post("/api/v1/chat", authMiddleware, async (req, res) => {
         const { name, tone, type } = req.body;     
 
         if (!name?.trim()) {
-            res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, 'Conversation name was not supplied'));
+            errorUtil.response(res, 400, errorUtil.errorCodes.validation, "Chat requires a name");
             return;
         }
 
-        // Note: tone will be subjected to further checks in createChat()
         if (!tone?.trim())
         {
-            res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, 'Conversation tone was not supplied'));
+            errorUtil.response(res, 400, errorUtil.errorCodes.validation, "Chat requrires a tone");
             return;
         }
 
-        const validTypes = new Set(['temp', 'active']);
+        if (!chatUtil.isValidTone(tone)) {
+            errorUtil.response(res, 400, errorUtil.errorCodes.validation, `${tone} is not a valid chat tone`);
+            return;
+        }
+
+        const validTypes = new Set(['temp', 'active', 'archived']);
         if (!validTypes.has(type)) {
-            res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, `${type} is not a valid conversation type`));
+            errorUtil.response(res, 400, errorUtil.errorCodes.validation, `${type} is not a valid chat type`);
             return;
         }
 
@@ -34,8 +37,7 @@ router.post("/api/v1/chat", authMiddleware, async (req, res) => {
 
         res.status(201).json({ chat: newChat });
     } catch (error) {
-        logger.error(`Failure to create chat for profile ${req.user.profileId}: ${error}`);
-        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, 'Failed to create a new conversation'))
+        errorUtil.handleRouterError(res, error, "POST /api/v1/chat");
     }
 });
 
@@ -52,8 +54,7 @@ router.post("/api/v1/chat/:chatId/revert", authMiddleware, async (req, res) => {
             res.status(204).send();
         }
     } catch (error) {
-        logger.error(`Failed to undo last exchange in chat ${chatId} for profile ${profileId}: ${error}`);
-        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, "Failed undo operation"));
+        errorUtil.handleRouterError(res, error, "POST /api/v1/chat/{id}/revert");
     }
 });
 
@@ -70,8 +71,7 @@ router.post("/api/v1/chat/:chatId/restore", authMiddleware, async (req, res) => 
             res.status(204).send();
         }
     } catch (error) {
-        logger.error(`Failed to undo last exchange in chat ${chatId} for profile ${profileId}: ${error}`);
-        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, "Failed redo operation"));
+        errorUtil.handleRouterError(res, error, "POST /api/v1/chat/{id}/restore");
     }
 });
 
@@ -84,7 +84,7 @@ router.get("/api/v1/chat/:chatId?", authMiddleware, async (req, res) => {
             const chat = await chatService.findChat(profileId, chatId);
 
             if (!chat.length) {
-                res.status(404).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.chatNotFound, "Chat was not found"));
+                errorUtil.response(res, 404, errorUtil.chatNotFound, "Specified chat not found");
                 return;
             }
             res.json({ chats: chat });
@@ -93,8 +93,7 @@ router.get("/api/v1/chat/:chatId?", authMiddleware, async (req, res) => {
             res.json({ chats: chats });
         }
     } catch (error) {
-        logger.error(`Failure to fetch chats for profile ${req.user.profileId}: ${error}`);
-        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, 'Failed to fetch chats'))
+        errorUtil.handleRouterError(res, error, "GET /api/v1/chat/{id?}");
     }
 });
 
@@ -110,24 +109,21 @@ router.patch("/api/v1/chat/:chatId", authMiddleware, async (req, res) => {
         };
 
         if (!data.name?.trim()) {
-            res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, 'Conversation name was not supplied'));
+            errorUtil.response(res, 400, errorUtil.errorCodes.validation, "Chat requires a name");
             return;
         }
 
         const validTypes = new Set(['temp', 'active', 'archived']);
         if (!validTypes.has(data.type)) {
-            res.status(400).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.validation, `${data.type} is not a valid conversation type`));
+            errorUtil.response(res, 400, errorUtil.errorCodes.validation, `${type} is not a valid chat type`);
             return;
         }
 
         await chatService.updateChat(profileId, chatId, data);
 
-        logger.debug(`chat ${chatId} updated`);
-
         res.status(204).send();    
     } catch (error) {
-        logger.error(`Failure to update chat for profile ${req.user.profileId}: ${error}`);
-        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, 'Failed to update chat'))
+        errorUtil.handleRouterError(res, error, "PATCH /api/v1/chat/{id}");
     }
 });
 
@@ -140,8 +136,7 @@ router.delete("/api/v1/chat/:chatId", authMiddleware, async (req, res) => {
 
         res.status(204).send();
     } catch (error) {
-        logger.error(`Failure to delete chat for profile ${req.user.profileId}: ${error}`);
-        res.status(500).json(apiUtil.apiErrorResponse(apiUtil.errorCodes.unknownError, 'Failed to delete chat'))
+        errorUtil.handleRouterError(res, error, "DELETE /api/v1/chat/{id}");
     }
 });
 

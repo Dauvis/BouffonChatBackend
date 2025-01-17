@@ -1,6 +1,7 @@
 import Chat from '../models/chatDocument.js';
 import logger from "../services/loggingService.js";
 import systemMessageService from "../services/systemMessageService.js";
+import errorUtil from '../util/errorUtil.js';
 
 /**
  * Create a new chat document
@@ -25,42 +26,74 @@ async function createChat(profileId, chatParameters) {
         const chatDoc = new Chat(newChatData);
         return await chatDoc.save();
     } catch (error) {
-        logger.error(`Error creating chat: ${chatParameters.type}, ${chatParameters.name}, ${chatParameters.tone}`);
-        throw new Error('Error creating new chat');
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError, 
+            `Error creating chat for profile ${profileId}: ${error}`,
+            "Internal error when creating a new chat");
     }
 }
 
+/**
+ * Fetch abridged chat information for profile
+ * @param {string} profileId 
+ * @returns array of abridged chats for specified profile
+ */
 async function fetchChatsAbridged(profileId) {
     if (!profileId) {
-        throw new Error("Attempt to call fetchChatsAbridged without a profile");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError, 
+            "Attempt to call fetchChatsAbridged without a profile",
+            "Internal error when fetching chats"
+        );
     }
 
     try {
         const chats = await Chat.find({ owner: profileId}, { type: 1, name: 1 });
         return chats;
     } catch (error) {
-        logger.error(`Error fetching abridged chat list for profile ${profileId}`);
-        throw new Error('Error fetching abridged chat list');
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError, 
+            `Error fetching abridged chat list for profile ${profileId}: ${error}`,
+            "Internal error when fetching chats"
+        );
     }
 }
 
+/**
+ * Finds chat for specified profile and chat identifiers
+ * @param {string} profileId 
+ * @param {string} chatId 
+ * @returns found chat by profile and chat idenifiers
+ */
 async function findChat(profileId, chatId) {
     if (!profileId || !chatId) {
-        throw new Error("Attempt to call findChat without a profile or chat identifier");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError, 
+            "Attempt to call findChat without a profile or chat identifier",
+            "Internal error while attempting load chat"
+        );
     }
 
     try {
         const chat = await Chat.find({owner: profileId, _id: chatId})
         return chat;
     } catch (error) {
-        logger.error(`Error fetching chat ${chatId} for profile ${profileId}: {error}`);
-        throw new Error('Error fetching chat');
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Error fetching chat ${chatId} for profile ${profileId}: ${error}`,
+            "Internal error while attempting to load chat."
+        );
     }
 }
 
+/**
+ * Updates chat specified by profile and chat identifiers
+ * @param {string} profileId 
+ * @param {string} chatId 
+ * @param {object} chatData 
+ * @returns updated chat information
+ */
 async function updateChat(profileId, chatId, chatData) {
     if (!profileId || !chatId) {
-        throw new Error("Attempt to call updateChat without a profile or chat identifier");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            "Attempt to call updateChat without a profile or chat identifier",
+            "Internal error attempting to update chat"
+        );
     }
 
     try {
@@ -70,19 +103,33 @@ async function updateChat(profileId, chatId, chatData) {
             { new: true, runValidators: true});
 
         if (!updated) {
-            throw new Error(`Chat ${chatId} for profile ${profileId} not found`);
+            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+                `Chat ${chatId} for profile ${profileId} not found`,
+                "Specified chat does not exist"
+            );
         }
 
         return updated._doc;
     } catch (error) {
-        logger.error(`Error updating chat ${chatId} for profile ${profileId}`);
-        throw new Error('Error updating chat');
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError, 
+            `Error updating chat ${chatId} for profile ${profileId}: ${error}`,
+            "Internal error attempting to update chat"
+        );
     }
 }
 
+/**
+ * Delete specified chat
+ * @param {string} profileId 
+ * @param {string} chatId 
+ * @returns data of delete chat
+ */
 async function deleteChat(profileId, chatId) {
     if (!profileId || !chatId) {
-        throw new Error("Attempt to call deleteChat without a profile or chat identifier");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError, 
+            "Attempt to call deleteChat without a profile or chat identifier",
+            "Internal error while deleting chat"
+        );
     }
 
     try {
@@ -93,11 +140,22 @@ async function deleteChat(profileId, chatId) {
 
         return deleted._doc;
     } catch (error) {
-        logger.error(`Error deleting chat ${chatId} for profile ${profileId}`);
-        throw new Error('Error deleting chat');
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Error deleting chat ${chatId} for profile ${profileId}: ${error}`,
+            "Internal error while deleting chat"
+        );
     }
 }
 
+/**
+ * Applies a new exchange to the specified chat
+ * @param {string} chat 
+ * @param {number} tokens 
+ * @param {string} userMessage 
+ * @param {string} assistantMessage 
+ * @param {object} additionalInfo 
+ * @returns The identifier of the newly created exchange
+ */
 async function applyExchange(chat, tokens, userMessage, assistantMessage, additionalInfo) {
     const curExchanges = chat.exchanges
 
@@ -117,9 +175,18 @@ async function applyExchange(chat, tokens, userMessage, assistantMessage, additi
     return exchangeId
 }
 
+/**
+ * Removes the last exchange on specified chat
+ * @param {string} profileId 
+ * @param {string} chatId 
+ * @returns the exchanged removed from the chat or empty string if none
+ */
 async function undoPreviousExchange(profileId, chatId) {
     if (!profileId || !chatId) {
-        throw new Error("Attempt to call undoPreviousExchange without a profile or chat identifier");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            "Attempt to call undoPreviousExchange without a profile or chat identifier",
+            "Internal error while undoing previous interaction"
+        );
     }
 
     try {
@@ -127,7 +194,10 @@ async function undoPreviousExchange(profileId, chatId) {
         const chat = chatList[0]._doc;
 
         if (!chat) {
-            throw new Error(`Unable to find chat ${chatId} for profile ${profileId}`);
+            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+                `Unable to find chat ${chatId} for profile ${profileId}`,
+                "Specified chat was not found"
+            );
         }
 
         const newExchanges = chat.exchanges.slice(0, -1);
@@ -146,7 +216,10 @@ async function undoPreviousExchange(profileId, chatId) {
             const updated = await updateChat(chat.owner, chat._id, data);
 
             if (!updated) {
-                throw new Error(`Failed to update undo operation for chat ${chatId} for profile ${profileId}`);
+                throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+                    `Failed to update undo operation for chat ${chatId} for profile ${profileId}`,
+                    "Specified chat was not found"
+                )
             }
 
             return last;
@@ -154,13 +227,25 @@ async function undoPreviousExchange(profileId, chatId) {
             return '';
         }
     } catch (error) {
-        throw error;
+        throw errorUtil.error(500, errorUtil.errorCodes,
+            `Error when reverting last exchange for chat ${chatId} for profile: ${profileId}: ${error}`,
+            "Internal error while undoing previous interaction"
+        );
     }
 }
 
+/**
+ * Restores previously remove exchange on chat
+ * @param {string} profileId 
+ * @param {string} chatId 
+ * @returns the exchange restored on the chat or empty string if none
+ */
 async function redoPreviousExchange(profileId, chatId) {
     if (!profileId || !chatId) {
-        throw new Error("Attempt to call redoPreviousExchange without a profile or chat identifier");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            "Attempt to call redoPreviousExchange without a profile or chat identifier",
+            "Internal error while undoing previous interaction"
+        );
     }
 
     try {
@@ -168,7 +253,10 @@ async function redoPreviousExchange(profileId, chatId) {
         const chat = list[0]._doc;
 
         if (!chat) {
-            throw new Error(`Unable to find chat ${chatId} for profile ${profileId}`);
+            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+                `Unable to find chat ${chatId} for profile ${profileId}`,
+                "Specified chat was not found"
+            );
         }
 
         const newStack = chat.undoStack.slice(0, -1);
@@ -187,7 +275,10 @@ async function redoPreviousExchange(profileId, chatId) {
             const updated = await updateChat(chat.owner, chat._id, data);
 
             if (!updated) {
-                throw new Error(`Failed to update redo operation for chat ${chatId} for profile ${profileId}`);
+                throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+                    `Failed to update redo operation for chat ${chatId} for profile ${profileId}`,
+                    "Specified chat was not found"
+                )
             }
 
             return last;
@@ -195,7 +286,10 @@ async function redoPreviousExchange(profileId, chatId) {
             return '';
         }
     } catch (error) {
-        throw error;
+        throw errorUtil.error(500, errorUtil.errorCodes,
+            `Error when restoring last exchange for chat ${chatId} for profile: ${profileId}: ${error}`,
+            "Internal error while undoing previous interaction"
+        );
     }
 }
 

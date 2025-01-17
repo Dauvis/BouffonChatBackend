@@ -1,5 +1,5 @@
 import Template from "../models/template.js"
-import logger from "../services/loggingService.js";
+import errorUtil from "../util/errorUtil.js";
 
 /**
  * Create a new template
@@ -8,6 +8,13 @@ import logger from "../services/loggingService.js";
  * @returns {object} - newly created template
  */
 async function createTemplate(profileId, templateParameters) {
+    if (!profileId) {
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError, 
+            "Attempted to call createTemplate without a profile identifier",
+            "Internal error attempting to create template"
+        );
+    }
+
     try {
         // doing it this way to mitigate shenanigans
         const newTemplateData = {
@@ -24,42 +31,75 @@ async function createTemplate(profileId, templateParameters) {
         const templateDoc = new Template(newTemplateData);
         return await templateDoc.save();
     } catch (error) {
-        logger.error(`Error creating template for ${profileId}: ${templateParameters.name}, ${templateParameters.category}`);
-        throw new Error('Error creating new template');
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError, 
+            `Error creating template for ${profileId}: ${error}`,
+            "Internal error attempting to create template"
+        );
     }
 }
 
+/**
+ * Fetch full list of templates for profile
+ * @param {string} profileId 
+ * @returns array of templates
+ */
 async function fetchTemplates(profileId) {
     if (!profileId) {
-        throw Error("Attempt to fetch templates without profileId");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            "Attempt to call fetchTemplates without a profile identifier",
+            "Internal error attempting to fetch templates"
+        );
     }
 
     try {
         const templates = Template.find({ owner: profileId }).sort({ category: 1, name: 1});
         return templates;
     } catch (error) {
-        logger.error(`Error fetching templates using profile ${profileId}: ${error}`);
-        throw new Error(`Error fetching templates using profile: ${error.message}`);    
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Error while fetching templates for profile ${profileId}: ${error}`,
+            "Internal error attempting to fetch templates"
+        );
     }
 }
 
+/**
+ * Find template with profile and template identifier
+ * @param {string} profileId 
+ * @param {string} templateId 
+ * @returns template or null if not found
+ */
 async function findTemplate(profileId, templateId) {
     if (!profileId || !templateId) {
-        throw Error("Attempt to find template without profileId or templateId");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            "Attempt to call findTemplate with profile or template identifier",
+            "Internal error attempting to fetch template"
+        );
     }
 
     try {
         const template = Template.find({ owner: profileId, _id: templateId });
         return template;
     } catch (error) {
-        logger.error(`Error find a template for profile ${profileId} using id ${templateId}: ${error}`);
-        throw new Error(`Error finding a template: ${error.message}`);    
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Error attempting to fetch template ${templateId} for ${profileId}: ${error}`,
+            "Internal error attempting to fetch template"
+        );
     }
 }
 
+/**
+ * Update template for profile and template
+ * @param {string} profileId 
+ * @param {string} templateId 
+ * @param {object} templateData 
+ * @returns updated template data or null
+ */
 async function updateTemplate(profileId, templateId, templateData) {
     if (!profileId || !templateId) {
-        throw Error("Attempt to update template without profileId or templateId");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            "Attempt to call updateTemplate without template or profile identifiers",
+            "Internal error attempting to update template"
+        );
     }
 
     try {
@@ -70,19 +110,27 @@ async function updateTemplate(profileId, templateId, templateData) {
         );
 
         if (!updated) {
-            throw new Error(`Template ${templateId} for profile ${profileId} not found`);
+            throw errorUtil.error(404, errorUtil.errorCodes.templateNotFound,
+                `Unable to update template ${templateId} for ${profileId}`,
+                "Unable to find template to update"
+            );
         }
 
         return updated._doc;
     } catch (error) {
-        logger.error(`Error updating a template for profile ${profileId} using id ${templateId}: ${error}`);
-        throw new Error(`Error updating a template: ${error.message}`);    
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError, 
+            `Error updating template ${templateId} for ${profileId}: ${error}`,
+            "Internal error attempting to update template"
+        );
     }
 }
 
 async function deleteTemplate(profileId, templateId) {
     if (!profileId || !templateId) {
-        throw Error("Attempt to delete template without profileId or templateId");
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError, 
+            "Attempt to call deleteTemplate without profile or template identifiers",
+            "Internal error attempting to delete template"
+        );
     }
 
     try {
@@ -93,8 +141,10 @@ async function deleteTemplate(profileId, templateId) {
 
         return deleted._doc;
     } catch (error) {
-        logger.error(`Error deleting a template for profile ${profileId} using id ${templateId}: ${error}`);
-        throw new Error(`Error deleting a template: ${error.message}`);    
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Failed to delete template ${templateId} for ${profileId}: ${error}`,
+            "Internal error attempting to delete template"
+        );
     }
 }
 

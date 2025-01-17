@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import config from "../config/config.js"
-import logger from "./loggingService.js"
+import errorUtil from "../util/errorUtil.js";
 
 const openai = new OpenAI({
     apiKey: config.openAIKey,
@@ -30,8 +30,10 @@ async function sendMessage(model, userMessage, systemMessage, exchanges) {
         const tokens = response.usage.total_tokens;
         return {assistantMessage, tokens};
     } catch (error) {
-        logger.error(`GPT interaction failed: ${error}`);
-        throw new Error("GPT interaction failed");
+        throw errorUtil.error(503, errorUtil.errorCodes.gptError, 
+            `Failed to communicate with GPT: ${error}`,
+            "Internal error communicating with GPT"
+        )
     }
 }
 
