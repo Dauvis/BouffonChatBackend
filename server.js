@@ -6,6 +6,7 @@ import './util/dbUtil.js';
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import "./services/purgeService.js";
 
 import logger from "./services/loggingService.js";
 

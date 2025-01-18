@@ -1,7 +1,8 @@
+import config from '../config/config.js';
 import Chat from '../models/chatDocument.js';
-import logger from "../services/loggingService.js";
 import systemMessageService from "../services/systemMessageService.js";
 import errorUtil from '../util/errorUtil.js';
+import logger from './loggingService.js';
 
 /**
  * Create a new chat document
@@ -138,6 +139,13 @@ async function deleteChat(profileId, chatId) {
             { runValidators: true }
         );
 
+        if (!deleted) {
+            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound,
+                `Unabled to find chat ${chatId} for ${profileId}`,
+                "Unable to find chat to delete"
+            );
+        }
+
         return deleted._doc;
     } catch (error) {
         throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
@@ -168,11 +176,11 @@ async function applyExchange(chat, tokens, userMessage, assistantMessage, additi
             { userMessage, assistantMessage, additionalInfo }
         ],
         undoStack: []
-    }
+    };
 
-    const updated = await updateChat(chat.owner, chat._id, data)
-    const exchangeId = updated.exchanges[updated.exchanges.length - 1]._id
-    return exchangeId
+    const updated = await updateChat(chat.owner, chat._id, data);
+    const exchangeId = updated.exchanges[updated.exchanges.length - 1]._id;
+    return exchangeId;
 }
 
 /**
@@ -190,8 +198,7 @@ async function undoPreviousExchange(profileId, chatId) {
     }
 
     try {
-        const chatList = await chatService.findChat(profileId, chatId);
-        const chat = chatList[0]._doc;
+        const chat = (await chatService.findChat(profileId, chatId))[0]._doc;
 
         if (!chat) {
             throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
@@ -249,8 +256,7 @@ async function redoPreviousExchange(profileId, chatId) {
     }
 
     try {
-        const list = await chatService.findChat(profileId, chatId);
-        const chat = list[0]._doc;
+        const chat = (await chatService.findChat(profileId, chatId))[0]._doc;
 
         if (!chat) {
             throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
@@ -293,7 +299,24 @@ async function redoPreviousExchange(profileId, chatId) {
     }
 }
 
+/**
+ * Searches for temp chats that have been idle and deletes them
+ */
+async function performIdleChatPurge() {
+    const cutoff = Date.now() - config.idleChatLife * 60 * 1000;
+
+    try {
+        const count = await Chat.deleteMany({ type: "temp", lastActivity: { $lte: cutoff }});
+        
+        if (count.deletedCount > 0) {
+            logger.debug(`Purge deleted ${count.deletedCount} chats`);
+        }
+    } catch (error) {
+        logger.error(`Error in performIdleChatPurge: ${error}`);
+    }
+}
+
 const chatService = {createChat, fetchChatsAbridged, findChat, updateChat, deleteChat, 
-    applyExchange, undoPreviousExchange, redoPreviousExchange };
+    applyExchange, undoPreviousExchange, redoPreviousExchange, performIdleChatPurge };
 
 export default chatService;

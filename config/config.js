@@ -22,6 +22,8 @@ const config = {
   refreshTokenLife: process.env.REFRESH_LIFE,
   cookieLife: process.env.COOKIE_LIFE,
   cookieSecret: process.env.COOKIE_SECRET,
+  idleChatLife: process.env.IDLE_CHAT_LIFE,
+  purgeFrequency: process.env.PURGE_FREQUENCY,
   __dirname
 };
 

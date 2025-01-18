@@ -17,6 +17,14 @@ router.post("/api/v1/message", authMiddleware, async (req, res) => {
   try {
     const chat = (await chatService.findChat(profileId, chatId))[0];
 
+    if (!chat) {
+      errorUtil.response(res, 404, errorUtil.errorCodes.chatNotFound,
+        `Unable to find chat ${chatId} for ${profileId}`,
+        "Unable to find chat"
+      );
+      return;
+    }
+
     if (chat && chatUtil.chatLimitPercent(chat) >= 100) {
       errorUtil.response(res, 400, errorUtil.errorCodes.validation, "Chat has reached it limit. Please start a new one.");
       return;
