@@ -10,6 +10,7 @@ class ApiError extends Error {
 }
 const errorCodes = {
     notAuthenticated: "NotAuthenticated",
+    notAuthorized: "NotAuthorized",
     unknownError: "UnknownError",
     profileNotFound: "ProfileNotFound",
     validation: "Validation",

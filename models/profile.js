@@ -8,6 +8,7 @@ const profileSchema = new Schema({
   defaultTone: { type: String, default: '' },
   defaultModel: { type: String, default: '' },
   refreshToken: { type: String, default: ''},
+  status: { type: String, default: 'inactive'},
 });
 
 export default model('Profile', profileSchema);

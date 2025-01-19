@@ -6,7 +6,7 @@ import errorUtil from "./errorUtil.js";
 
 const client = new OAuth2Client(config.googleClientId);
 
-function createToken({ sub, email, name, profileId, key }, secret, life) {
+function createToken({ sub, email, name, profileId, key, status }, secret, life) {
     if (!sub || !email || !profileId) {
         throw errorUtil.error(500, errorUtil.errorCodes.internalError,
             "Attempt to call creationToken without sufficient data to create JWT",
@@ -14,7 +14,7 @@ function createToken({ sub, email, name, profileId, key }, secret, life) {
         );
     }
 
-    return jwt.sign({ sub, email, name, profileId, key }, secret, { expiresIn: life + 's' });
+    return jwt.sign({ sub, email, name, profileId, key, status }, secret, { expiresIn: life + 's' });
 };
 
 function verifyToken(token, secret) {
@@ -39,14 +39,17 @@ async function verifyGoogleToken(idToken) {
     }
 }
 
-function getTokenPayload(profile, randomKey = null) {
-    return ({
+function getTokenPayload(profile, randomKey = "") {
+    const payload = {
         sub: profile.googleId,
         email: profile.email,
         name: profile.name,
         profileId: profile._id,
-        key: randomKey || "",
-    });
+        status: profile.status,
+        key: randomKey,
+    };
+
+    return payload;
 }
 
 const tokenUtil = { createToken, verifyGoogleToken, verifyToken, getTokenPayload };

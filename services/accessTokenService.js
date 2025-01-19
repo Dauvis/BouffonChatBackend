@@ -24,7 +24,7 @@ async function refreshToken(profileId, randomKey) {
         const tokenInfo = tokenUtil.verifyToken(profile.refreshToken, config.refreshSecret);
 
         if (!profile || !tokenInfo || randomKey !== tokenInfo.key) {
-            logger.warn(`Unable to refresh profile ${profileId} due to unpaired keys: ${randomKey} vs. ${tokenInfo.key}`);
+            logger.warn(`Unable to refresh profile ${profileId} due to unpaired keys`);
             return null;
         }
 
