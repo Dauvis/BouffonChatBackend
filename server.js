@@ -18,7 +18,7 @@ import apiLoginRoutes from "./routes/apiLoginRoutes.js";
 import apiTemplateRoutes from "./routes/apiTemplateRoutes.js";
 
 const app = express();
-app.use(cors({ origin: 'https://localhost:8888', credentials: true }));
+app.use(cors({ origin: config.webAppSite, credentials: true }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -37,5 +37,5 @@ app.use("/", apiLoginRoutes);
 app.use("/", apiTemplateRoutes);
 
 https.createServer(config.sslOptions, app).listen(config.httpsPort, () => {
-  logger.info(`Secure server running at https://localhost:${config.httpsPort}`);
+  logger.info(`Secure server running on port ${config.httpsPort}`);
 });

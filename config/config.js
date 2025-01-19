@@ -24,6 +24,7 @@ const config = {
   cookieSecret: process.env.COOKIE_SECRET,
   idleChatLife: process.env.IDLE_CHAT_LIFE,
   purgeFrequency: process.env.PURGE_FREQUENCY,
+  webAppSite: process.env.WEB_APP_SITE,
   __dirname
 };
 
