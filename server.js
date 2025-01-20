@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import https from "https";
+import http from "http";
+import fs from "fs";
 import config from "./config/config.js";
 import './util/dbUtil.js';
 import cookieParser from "cookie-parser";
@@ -21,9 +23,9 @@ const app = express();
 app.use(cors({ origin: config.webAppSite, credentials: true }));
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.'
 });
 
 app.use(limiter);
@@ -36,6 +38,17 @@ app.use("/", apiChatRoutes);
 app.use("/", apiLoginRoutes);
 app.use("/", apiTemplateRoutes);
 
-https.createServer(config.sslOptions, app).listen(config.httpsPort, () => {
-  logger.info(`Secure server running on port ${config.httpsPort}`);
-});
+if (config.useHTTPS === "true") {
+    const sslOptions = {
+        key: fs.readFileSync(process.env.SSL_KEY_PATH),
+        cert: fs.readFileSync(process.env.SSL_CERT_PATH),
+    };
+
+    https.createServer(sslOptions, app).listen(config.port, () => {
+        logger.info(`Secure server running on port ${config.port}`);
+    });
+} else {
+    http.createServer(app).listen(config.port, () => {
+        logger.info(`Server running on port ${config.port}`);
+    })
+}

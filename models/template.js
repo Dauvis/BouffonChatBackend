@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 import mongoose from 'mongoose';
 
 const templateSchema = new Schema({
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Profile', required: true },
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Profile', required: true, index: true },
   name: { type: String, required: true },
   description: { type: String, default: '' },
   category: { type: String, required: true },

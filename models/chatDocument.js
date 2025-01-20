@@ -32,8 +32,8 @@ const ChatSchema = new Schema({
     tokens: { type: Number, required: true },
     model: { type: String, required: true },
     systemMessage: { type: String, required: true },
-    lastActivity: { type: Date, default: Date.now },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Profile', required: true },
+    lastActivity: { type: Date, default: Date.now, index: true },
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Profile', required: true, index: true },
     exchanges: [ExchangeSchema],
     undoStack: [ExchangeSchema]
 });

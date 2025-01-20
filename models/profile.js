@@ -1,9 +1,9 @@
 import { Schema, model } from 'mongoose';
 
 const profileSchema = new Schema({
-  googleId: { type: String, required: true, unique: true },
+  googleId: { type: String, required: true, unique: true, index: true },
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true, index: true },
   defaultInstructions: { type: String, default: '' },
   defaultTone: { type: String, default: '' },
   defaultModel: { type: String, default: '' },
