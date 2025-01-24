@@ -27,7 +27,7 @@ async function ensureAuthenticated(req, res, next) {
 
   if (user.status !== "active") {
     errorUtil.response(res, 403, errorUtil.errorCodes.notAuthorized, 
-      "Your have not been activated to access this application. Please contact site's owner for assistance"
+      "Your have not been activated to access this application. Please contact administrator for assistance"
     );
     logger.warn(`Profile ${user.profileId} (${user.email} attempted unauthorized access)`);
     return;
