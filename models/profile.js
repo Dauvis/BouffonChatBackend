@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Schema, model } from 'mongoose';
 
 const profileSchema = new Schema({
@@ -9,6 +10,7 @@ const profileSchema = new Schema({
   defaultModel: { type: String, default: '' },
   refreshToken: { type: String, default: ''},
   status: { type: String, default: 'inactive'},
+  templateMRU: [ mongoose.Schema.Types.Mixed ],
 });
 
 export default model('Profile', profileSchema);

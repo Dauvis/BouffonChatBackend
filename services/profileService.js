@@ -157,6 +157,37 @@ async function findOrLink(userData) {
     return profile;
 }
 
+/**
+ * Adds a template reference to the profile's MRU
+ * @param {string} profileId 
+ * @param {object} template 
+ * @returns new MRU
+ */
+async function addTemplate(profileId, template) {
+    if (!template || !template.id || !template.name) {
+        return;
+    }
+
+    const current = (await Profile.findOne({ _id: profileId}, { templateMRU: 1 })) || { templateMRU: [] };
+    const filtered = current.templateMRU.filter(t => t.id !== template.id);
+    const updated = ([{ id: template.id, name: template.name }, ...filtered]).slice(0, 10);
+    
+    const updatedProfile = await Profile.findOneAndUpdate(
+        { _id: profileId },
+        { templateMRU: updated},
+        { new: true, runValidators: true }
+    );
+
+    if (!updatedProfile) {
+        throw errorUtil.error(404, errorUtil.errorCodes.profileNotFound,
+            `Unable to update profile ${profileId}`,
+            "Unable to fetch profile for update"
+        );
+    }
+
+    return updated;
+}
+
 const profileService = {
     findWithGoogleId,
     create,
@@ -164,7 +195,8 @@ const profileService = {
     findOrLink,
     update,
     find,
-    excludePrivateProperties
+    excludePrivateProperties,
+    addTemplate
 };
 
 export default profileService;
