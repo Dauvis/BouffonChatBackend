@@ -11,9 +11,26 @@ function excludePrivateProperties(fullProfile) {
  * @param {string} googleId - The Google ID to search for.
  * @returns {Promise<Object|null>} - The found profile or null if not found.
  */
-async function findProfileByGoogleId(googleId) {
+async function findWithGoogleId(googleId) {
     try {
         const profile = await Profile.findOne({ googleId });
+        return profile;
+    } catch (error) {
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
+            `Failed to fetch profile for Google id ${googleId}: ${error}`,
+            "Internal error attempting to load profile"
+        );
+    }
+}
+
+/**
+ * Find profile using email address
+ * @param {string} email 
+ * @returns profile or null if not found
+ */
+async function findWithEmail(email) {
+    try {
+        const profile = await Profile.findOne({ email });
         return profile;
     } catch (error) {
         throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
@@ -28,7 +45,7 @@ async function findProfileByGoogleId(googleId) {
  * @param {Object} profileData - The data for the new profile.
  * @returns {Promise<Object>} - The newly created profile.
  */
-async function createProfile(profileData) {
+async function create(profileData) {
     try {
         const profile = new Profile(profileData);
         return (await profile.save())._doc;
@@ -45,10 +62,10 @@ async function createProfile(profileData) {
  * @param {*} profileId Identifier of the profile
  * @returns {object} - profile found for identifier
  */
-async function findProfile(profileId) {
+async function find(profileId) {
     if (!profileId) {
         throw errorUtil.error(500, errorUtil.errorCodes.internalError,
-            "Call to findProfile without profile identifier",
+            "Call to find without profile identifier",
             "Internal error attempting to find profile"
         );
     }
@@ -70,7 +87,7 @@ async function findProfile(profileId) {
  * @param {Object} profileData - The data for the new profile.
  * @returns {Promise<Object>} - The newly created profile.
  */
-async function updateProfile(profileId, profileData) {
+async function update(profileId, profileData) {
     try {
         const updatedProfile = await Profile.findOneAndUpdate(
             { _id: profileId },
@@ -95,15 +112,15 @@ async function updateProfile(profileId, profileData) {
 }
 
 /**
- * Get or create a profile based on Google ID.
+ * find or create a profile based on Google profile.
  * @param {Object} userData - The user data from Google.
  * @returns {Promise<Object>} - The existing or new profile.
  */
-async function getOrCreateProfile(userData) {
-    let profile = await findProfileByGoogleId(userData.googleId);
+async function findOrCreate(userData) {
+    let profile = await findWithGoogleId(userData.googleId);
 
     if (!profile) {
-        profile = await createProfile({
+        profile = await create({
             googleId: userData.googleId,
             name: userData.name,
             email: userData.email,
@@ -114,13 +131,72 @@ async function getOrCreateProfile(userData) {
     return profile;
 }
 
+/**
+ * Find or link a profile based on Google profile
+ * @param {object} userData 
+ * @returns profile or null if not found
+ */
+async function findOrLink(userData) {
+    let profile = await findWithGoogleId(userData.googleId);
+
+    if (!profile) {
+        profile = await findWithEmail(userData.email);
+
+        // link the profile
+        if (profile) {
+            profile.name = userData.name;
+            profile.googleId = userData.googleId;
+
+            await Profile.findOneAndUpdate(
+                { _id: profile._id },
+                profile,
+                { new: true, runValidators: true });
+        }
+    }
+
+    return profile;
+}
+
+/**
+ * Adds a template reference to the profile's MRU
+ * @param {string} profileId 
+ * @param {object} template 
+ * @returns new MRU
+ */
+async function addTemplate(profileId, template) {
+    if (!template || !template.id || !template.name) {
+        return;
+    }
+
+    const current = (await Profile.findOne({ _id: profileId}, { templateMRU: 1 })) || { templateMRU: [] };
+    const filtered = current.templateMRU.filter(t => t.id !== template.id);
+    const updated = ([{ id: template.id, name: template.name }, ...filtered]).slice(0, 10);
+    
+    const updatedProfile = await Profile.findOneAndUpdate(
+        { _id: profileId },
+        { templateMRU: updated},
+        { new: true, runValidators: true }
+    );
+
+    if (!updatedProfile) {
+        throw errorUtil.error(404, errorUtil.errorCodes.profileNotFound,
+            `Unable to update profile ${profileId}`,
+            "Unable to fetch profile for update"
+        );
+    }
+
+    return updated;
+}
+
 const profileService = {
-    findProfileByGoogleId,
-    createProfile,
-    getOrCreateProfile,
-    updateProfile,
-    findProfile,
-    excludePrivateProperties
+    findWithGoogleId,
+    create,
+    findOrCreate,
+    findOrLink,
+    update,
+    find,
+    excludePrivateProperties,
+    addTemplate
 };
 
 export default profileService;

@@ -25,7 +25,13 @@ router.post("/api/v1/login", async (req, res) => {
             email: payload.email,
         };
 
-        const profile = await profileService.getOrCreateProfile(userData);
+        const profile = await profileService.findOrLink(userData);
+
+        if (!profile) {
+            errorUtil.response(res, 403, errorUtil.errorCodes.notAuthorized, "This email address has not been whitelisted. Contact the administrator for assistance.");
+            return;
+        }
+
         const randomKey = cookieUtil.getRandomKey();
         cookieUtil.setSessionCookie(res, {
             profileId: profile._id,
@@ -38,7 +44,7 @@ router.post("/api/v1/login", async (req, res) => {
             config.refreshTokenLife
         );
 
-        await profileService.updateProfile(profile._id, { refreshToken });
+        await profileService.update(profile._id, { refreshToken });
 
         const accessToken = tokenUtil.createToken(
             tokenUtil.getTokenPayload(profile),
@@ -60,7 +66,7 @@ router.delete("/api/v1/login", authMiddleware, async (req, res) => {
     const profileId = req.user.profileId;
 
     try {
-        await profileService.updateProfile(profileId, { refreshToken: "" });
+        await profileService.update(profileId, { refreshToken: "" });
         cookieUtil.deleteSessionCookie(res);
         accessTokenService.removeToken(profileId);
         res.status(204).send();

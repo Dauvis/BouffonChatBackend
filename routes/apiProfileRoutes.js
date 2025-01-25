@@ -7,8 +7,10 @@ import errorUtil from "../util/errorUtil.js";
 const router = express.Router();
 
 router.get("/api/v1/profile", authMiddleware, async (req, res) => {
+    const profileId = req.user.profileId;
+
     try {
-        const userProfile = await profileService.findProfileByGoogleId(req.user.sub);
+        const userProfile = await profileService.find(profileId);
 
         if (!userProfile) {
             errorUtil.response(res, 404, errorUtil.errorCodes.profileNotFound, "Unable able to user profile");
@@ -44,7 +46,7 @@ router.put("/api/v1/profile", authMiddleware, async (req, res) => {
             return;
         }
 
-        await profileService.updateProfile(profileId, data);
+        await profileService.update(profileId, data);
 
         res.status(204).send();
     } catch (error) {

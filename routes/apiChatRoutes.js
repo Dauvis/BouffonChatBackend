@@ -3,13 +3,14 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import chatService from "../services/chatService.js";
 import errorUtil from "../util/errorUtil.js";
 import chatUtil from "../util/chatUtil.js";
+import profileService from "../services/profileService.js";
 
 const router = express.Router();
 
 router.post("/api/v1/chat", authMiddleware, async (req, res) => {
     try {
         const newChatOptions = req.body;
-        const { name, tone, type } = req.body;     
+        const { name, tone, type, template } = req.body;     
 
         if (!name?.trim()) {
             errorUtil.response(res, 400, errorUtil.errorCodes.validation, "Chat requires a name");
@@ -34,8 +35,9 @@ router.post("/api/v1/chat", authMiddleware, async (req, res) => {
         }
 
         const newChat = await chatService.createChat(req.user.profileId, newChatOptions);
+        const updatedMRU = await profileService.addTemplate(req.user.profileId, template);
 
-        res.status(201).json({ chat: newChat });
+        res.status(201).json({ chat: newChat, mru: updatedMRU });
     } catch (error) {
         errorUtil.handleRouterError(res, error, "POST /api/v1/chat");
     }

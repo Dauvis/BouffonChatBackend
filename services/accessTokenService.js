@@ -20,7 +20,7 @@ function removeToken(profileId) {
 
 async function refreshToken(profileId, randomKey) {
     try {
-        const profile = await profileService.findProfile(profileId);
+        const profile = await profileService.find(profileId);
         const tokenInfo = tokenUtil.verifyToken(profile.refreshToken, config.refreshSecret);
 
         if (!profile || !tokenInfo || randomKey !== tokenInfo.key) {
