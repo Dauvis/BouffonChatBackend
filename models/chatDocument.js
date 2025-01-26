@@ -1,22 +1,6 @@
 import { Schema, model } from 'mongoose';
 import mongoose from 'mongoose';
 
-const ToolCallSchema = new Schema({
-    toolCallId: { type: String, required: true },
-    callArgs: { type: Object, default: '' },
-    callFunction: { type: String, required: true },
-    callResult: { type: Object, default: '' }
-}, {_id: false });
-
-const ToolCallRecordSchema = new Schema({
-    assistantMessage: { type: String, required: true },
-    toolCalls: [ToolCallSchema]
-}, {_id: false });
-
-const GPTRecordSchema = new Schema({
-    toolCallCollection: [ToolCallRecordSchema]
-}, {_id: false })
-
 const ExchangeSchema = new Schema({
     userMessage: { type: String, required: true },
     assistantMessage: { type: String, required: true },

@@ -117,7 +117,7 @@ router.patch("/api/v1/chat/:chatId", authMiddleware, async (req, res) => {
 
         const validTypes = new Set(['temp', 'active', 'archived']);
         if (!validTypes.has(data.type)) {
-            errorUtil.response(res, 400, errorUtil.errorCodes.validation, `${type} is not a valid chat type`);
+            errorUtil.response(res, 400, errorUtil.errorCodes.validation, `${data.type} is not a valid chat type`);
             return;
         }
 

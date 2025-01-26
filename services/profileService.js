@@ -1,8 +1,19 @@
 import Profile from '../models/profile.js';
 import errorUtil from '../util/errorUtil.js';
 
-function excludePrivateProperties(fullProfile) {
-    const { googleId: _, refreshToken: __, ...publicProfile } = fullProfile;
+function redact(profile) {
+    // explicitly adding properties that I want visible to frontend
+    const publicProfile = {
+        _id: profile._id,
+        name: profile.name,
+        email: profile.email,
+        defaultInstructions: profile.defaultInstructions,
+        defaultTone: profile.defaultTone,
+        defaultModel: profile.defaultModel,
+        status: profile.status,
+        templateMRU: profile.templateMRU
+    }
+
     return publicProfile;
 }
 
@@ -34,7 +45,7 @@ async function findWithEmail(email) {
         return profile;
     } catch (error) {
         throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
-            `Failed to fetch profile for Google id ${googleId}: ${error}`,
+            `Failed to fetch profile for email ${email}: ${error}`,
             "Internal error attempting to load profile"
         );
     }
@@ -195,7 +206,7 @@ const profileService = {
     findOrLink,
     update,
     find,
-    excludePrivateProperties,
+    redact,
     addTemplate
 };
 

@@ -18,7 +18,7 @@ router.get("/api/v1/profile", authMiddleware, async (req, res) => {
             return;
         }
 
-        const { googleId, refreshToken, ...publicProfile } = userProfile._doc;
+        const publicProfile = profileService.redact(userProfile);
 
         res.json({
             profile: publicProfile,
