@@ -55,7 +55,7 @@ router.post("/api/v1/login", async (req, res) => {
         accessTokenService.setToken(profile._id.toString(), accessToken);
         const profileDoc = profile._doc;
         res.json({
-            profile: profileService.excludePrivateProperties(profileDoc),
+            profile: profileService.redact(profileDoc),
         });
     } catch (error) {
         errorUtil.handleRouterError(res, error, "POST /api/v1/login");
