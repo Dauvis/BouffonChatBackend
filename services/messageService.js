@@ -6,6 +6,10 @@ function isStandardGPT(model) {
     return (model === "gpt-4o" || model === "gpt-4o-mini");
 }
 
+function isReasoningGPT(model) {
+    return (model === "o1-preview" || model === "o1-mini");
+}
+
 async function sendMessage(profileId, chatId, userMessage) {
     if (!profileId || !chatId) {
         throw errorUtil.error(500, errorUtil.errorCodes.internalError,
@@ -18,7 +22,11 @@ async function sendMessage(profileId, chatId, userMessage) {
     const chat = chats[0];
 
     if (isStandardGPT(chat.model)) {
-        const { assistantMessage, tokens } = await messageServiceGPT.sendMessage(chat.model, userMessage, chat.systemMessage, chat.exchanges)
+        const { assistantMessage, tokens } = await messageServiceGPT.sendMessage(chat.model, userMessage, chat.systemMessage, chat.exchanges);
+        const exchangeId = await chatService.applyExchange(chat, tokens, userMessage, assistantMessage, null);
+        return { assistantMessage, tokens, exchangeId }
+    } else if (isReasoningGPT(chat.model)) {
+        const { assistantMessage, tokens } = await messageServiceGPT.sendMessage(chat.model, userMessage, "", chat.exchanges);
         const exchangeId = await chatService.applyExchange(chat, tokens, userMessage, assistantMessage, null);
         return { assistantMessage, tokens, exchangeId }
     }

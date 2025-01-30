@@ -1,8 +1,11 @@
 import systemMessageService from "../services/systemMessageService.js"
+import modelUtil from "./modelUtil.js";
 
 function chatLimitPercent(chat) {
-    if (chat.model === "gpt-4o" || chat.model === "gpt-4o-mini") {
-        return 100 * (chat.tokens / 25000);
+    const tokenLimit = modelUtil.modelTokenLimit(chat.model);
+
+    if (tokenLimit) {
+        return 100 * (chat.tokens / tokenLimit);
     }
 
     return 0;

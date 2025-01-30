@@ -10,6 +10,10 @@ function defaultModel() {
     return 'gpt-4o-mini';
 }
 
+function defaultTone() {
+    return systemMessageData.defaultTone;
+}
+
 function buildSystemMessage(tone, instructions, notes) {
     let messageParts = [];
 
@@ -57,6 +61,6 @@ function buildSystemMessage(tone, instructions, notes) {
     return messageParts.join('');
 }
 
-const systemMessageService = { getToneOptionList, defaultModel, buildSystemMessage };
+const systemMessageService = { getToneOptionList, defaultModel, buildSystemMessage, defaultTone };
 
 export default systemMessageService;

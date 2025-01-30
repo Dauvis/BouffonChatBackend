@@ -6,7 +6,7 @@ import cookieUtil from "../util/cookieUtil.js";
 import accessTokenService from "../services/accessTokenService.js";
 
 function handleError(res) {
-  errorUtil.response(res, 401, errorUtil.errorCodes.notAuthenticated, "API requires authentication to access this resource");
+  errorUtil.response(res, 401, errorUtil.errorCodes.notAuthenticated, "Authentication require");
   logger.info("Access attempt by unauthenticatd connection");
 }
 

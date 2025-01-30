@@ -3,6 +3,7 @@ import Chat from '../models/chatDocument.js';
 import systemMessageService from "../services/systemMessageService.js";
 import errorUtil from '../util/errorUtil.js';
 import logger from './loggingService.js';
+import modelUtil from "../util/modelUtil.js"
 
 /**
  * Create a new chat document
@@ -11,17 +12,22 @@ import logger from './loggingService.js';
  */
 async function createChat(profileId, chatParameters) {
     try {
+        const modelId = chatParameters.model || systemMessageService.defaultModel();
+        const model = modelUtil.find(modelId);
+
         // doing it this way to mitigate shenanigans
         const newChatData = {
             owner: profileId,
             type: chatParameters.type,
             name: chatParameters.name,
-            tone: chatParameters.tone,
-            instructions: chatParameters.instructions,
-            notes: chatParameters.notes,
+            tone: model.devMsg ? chatParameters.tone : systemMessageService.defaultModel(),
+            instructions: model.devMsg ? chatParameters.instructions : "",
+            notes: model.devMsg ? chatParameters.notes : "",
             tokens: 0,
-            model: chatParameters.model || systemMessageService.defaultModel(),
-            systemMessage: systemMessageService.buildSystemMessage(chatParameters.tone, chatParameters.instructions, chatParameters.notes)
+            model: modelId,
+            systemMessage: model.devMsg ? 
+                systemMessageService.buildSystemMessage(chatParameters.tone, chatParameters.instructions, chatParameters.notes) :
+                "Not available"
         };
 
         const chatDoc = new Chat(newChatData);

@@ -6,7 +6,11 @@ import availableModels from "../config/modelData.js";
 const router = express.Router();
 
 const modelOptions = availableModels.map(entry => {
-  return { value: entry.id, label: entry.name};
+  return { 
+    value: entry.id, 
+    label: entry.name, 
+    devMsg: entry.devMsg, 
+    tone: !entry.devMsg ? systemMessageService.defaultTone() : "" };
 });
 
 router.get("/api/v1/options/tones", authMiddleware, (req, res) => {
