@@ -5,6 +5,7 @@ import errorUtil from "../util/errorUtil.js";
 import chatUtil from "../util/chatUtil.js";
 import profileService from "../services/profileService.js";
 import importExportService from "../services/importExportService.js";
+import uploadMiddleware from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -122,6 +123,26 @@ router.post("/api/v1/chat/export", authMiddleware, async (req, res) => {
         }
     } catch (error) {
         errorUtil.handleRouterError(res, error, "POST /api/v1/chat/export");
+    }
+});
+
+router.post("/api/v1/chat/import", [ authMiddleware, uploadMiddleware ], async (req, res) => {
+    const profileId = req.user.profileId;
+    const files = req.files;
+
+    if (!files || files.length === 0) {
+        errorUtil.response(res, 400, errorUtil.errorCodes.noData, "No files uploaded for import");
+        return
+    }
+
+    try {
+        for (const file of files) {
+            importExportService.restoreImport(profileId, file.buffer);
+        }
+
+        res.status(204).send();
+    } catch (error) {
+        errorUtil.handleRouterError(res, error, "POST /api/v1/chat/import");
     }
 });
 

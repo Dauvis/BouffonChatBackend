@@ -1,5 +1,6 @@
 import archiver from "archiver";
 import { PassThrough } from "stream";
+import chatService from "./chatService.js";
 
 function exportFilename() {
     const currentDate = new Date();
@@ -13,6 +14,11 @@ function exportFilename() {
     return `ChatExport_${yearPart}${monthPart}${dayPart}${hourPart}${minutePart}${secondPart}.zip`;
 }
 
+/**
+ * Sends and array of chat export data to the frontend
+ * @param {object} res 
+ * @param {array} exportData 
+ */
 function transmitExport(res, exportData) {
     const archive = archiver('zip', { zlib: { level: 9 } });
     const memoryStream = new PassThrough();
@@ -27,6 +33,17 @@ function transmitExport(res, exportData) {
     archive.finalize();
 }
 
-const importExportService = { transmitExport };
+/**
+ * Restores an imported chat from a file
+ * @param {string} profileId 
+ * @param {blob} fileData 
+ */
+function restoreImport(profileId, fileData) {
+    const jsonText = fileData.toString('utf-8');
+    const chat = JSON.parse(jsonText);
+    chatService.importChat(profileId, chat);
+}
+
+const importExportService = { transmitExport, restoreImport };
 
 export default importExportService;

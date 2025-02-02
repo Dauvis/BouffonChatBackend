@@ -366,10 +366,29 @@ async function purgeChats(profileId, chatList) {
     }
 }
 
+/**
+ * Creates a new chat from data imported from a file
+ * @param {string} profileId 
+ * @param {object} chat 
+ * @returns newly created chat
+ */
+async function importChat(profileId, chat) {
+    const modifiedChat = { ...chat };
+    delete modifiedChat._id;
+    modifiedChat.owner = profileId;
+
+    for (const exchange of modifiedChat.exchanges) {
+        delete exchange._id;
+    }
+
+    const chatDoc = new Chat(modifiedChat);
+    return await chatDoc.save();
+}
+
 const chatService = {
     createChat, fetchChatsAbridged, findChat, updateChat, deleteChat,
     applyExchange, undoPreviousExchange, redoPreviousExchange, performIdleChatPurge,
-    fetchExportData, purgeChats
+    fetchExportData, purgeChats, importChat
 };
 
 export default chatService;
