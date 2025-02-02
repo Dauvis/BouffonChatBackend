@@ -4,6 +4,7 @@ import chatService from "../services/chatService.js";
 import errorUtil from "../util/errorUtil.js";
 import chatUtil from "../util/chatUtil.js";
 import profileService from "../services/profileService.js";
+import importExportService from "../services/importExportService.js";
 
 const router = express.Router();
 
@@ -96,6 +97,31 @@ router.get("/api/v1/chat/:chatId?", authMiddleware, async (req, res) => {
         }
     } catch (error) {
         errorUtil.handleRouterError(res, error, "GET /api/v1/chat/{id?}");
+    }
+});
+
+router.post("/api/v1/chat/export", authMiddleware, async (req, res) => {
+    const profileId = req.user.profileId;
+    const selectedChats = req.body?.selection || [];
+    const deleteChats = req.body?.purge || false;
+
+    try {
+        const exportData = await chatService.fetchExportData(profileId, selectedChats);
+
+        if (exportData.length === 0) {
+            errorUtil.response(res, 400, errorUtil.errorCodes.noData, "No data selected to export");
+            return;
+        }
+
+        importExportService.transmitExport(res, exportData);
+
+        if (deleteChats) {
+            // only purge chats that were actually exported
+            const exportedChats = exportData.map(c => (c.id));
+            await chatService.purgeChats(profileId, exportedChats);
+        }
+    } catch (error) {
+        errorUtil.handleRouterError(res, error, "POST /api/v1/chat/export");
     }
 });
 

@@ -20,7 +20,8 @@ const errorCodes = {
     dataStoreError: "DataStoreError",
     internalError: "InternalError",
     gptError: "GTPError",
-    sessionError: "SessionError"
+    sessionError: "SessionError",
+    noData: "NoData"
 }
 
 function errorResponse(errorCode, errorMessage) {

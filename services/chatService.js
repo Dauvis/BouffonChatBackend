@@ -25,7 +25,7 @@ async function createChat(profileId, chatParameters) {
             notes: model.devMsg ? chatParameters.notes : "",
             tokens: 0,
             model: modelId,
-            systemMessage: model.devMsg ? 
+            systemMessage: model.devMsg ?
                 systemMessageService.buildSystemMessage(chatParameters.tone, chatParameters.instructions, chatParameters.notes) :
                 "Not available"
         };
@@ -33,7 +33,7 @@ async function createChat(profileId, chatParameters) {
         const chatDoc = new Chat(newChatData);
         return await chatDoc.save();
     } catch (error) {
-        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError, 
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
             `Error creating chat for profile ${profileId}: ${error}`,
             "Internal error when creating a new chat");
     }
@@ -46,17 +46,17 @@ async function createChat(profileId, chatParameters) {
  */
 async function fetchChatsAbridged(profileId) {
     if (!profileId) {
-        throw errorUtil.error(500, errorUtil.errorCodes.internalError, 
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
             "Attempt to call fetchChatsAbridged without a profile",
             "Internal error when fetching chats"
         );
     }
 
     try {
-        const chats = await Chat.find({ owner: profileId}, { type: 1, name: 1 });
+        const chats = await Chat.find({ owner: profileId }, { type: 1, name: 1 });
         return chats;
     } catch (error) {
-        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError, 
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
             `Error fetching abridged chat list for profile ${profileId}: ${error}`,
             "Internal error when fetching chats"
         );
@@ -67,18 +67,18 @@ async function fetchChatsAbridged(profileId) {
  * Finds chat for specified profile and chat identifiers
  * @param {string} profileId 
  * @param {string} chatId 
- * @returns found chat by profile and chat idenifiers
+ * @returns an array containing the chat
  */
 async function findChat(profileId, chatId) {
     if (!profileId || !chatId) {
-        throw errorUtil.error(500, errorUtil.errorCodes.internalError, 
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
             "Attempt to call findChat without a profile or chat identifier",
             "Internal error while attempting load chat"
         );
     }
 
     try {
-        const chat = await Chat.find({owner: profileId, _id: chatId})
+        const chat = await Chat.find({ owner: profileId, _id: chatId })
         return chat;
     } catch (error) {
         throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
@@ -107,10 +107,10 @@ async function updateChat(profileId, chatId, chatData) {
         const updated = await Chat.findOneAndUpdate(
             { owner: profileId, _id: chatId },
             chatData,
-            { new: true, runValidators: true});
+            { new: true, runValidators: true });
 
         if (!updated) {
-            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound,
                 `Chat ${chatId} for profile ${profileId} not found`,
                 "Specified chat does not exist"
             );
@@ -118,7 +118,7 @@ async function updateChat(profileId, chatId, chatData) {
 
         return updated._doc;
     } catch (error) {
-        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError, 
+        throw errorUtil.error(500, errorUtil.errorCodes.dataStoreError,
             `Error updating chat ${chatId} for profile ${profileId}: ${error}`,
             "Internal error attempting to update chat"
         );
@@ -133,7 +133,7 @@ async function updateChat(profileId, chatId, chatData) {
  */
 async function deleteChat(profileId, chatId) {
     if (!profileId || !chatId) {
-        throw errorUtil.error(500, errorUtil.errorCodes.internalError, 
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
             "Attempt to call deleteChat without a profile or chat identifier",
             "Internal error while deleting chat"
         );
@@ -207,7 +207,7 @@ async function undoPreviousExchange(profileId, chatId) {
         const chat = (await chatService.findChat(profileId, chatId))[0]._doc;
 
         if (!chat) {
-            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound,
                 `Unable to find chat ${chatId} for profile ${profileId}`,
                 "Specified chat was not found"
             );
@@ -217,19 +217,19 @@ async function undoPreviousExchange(profileId, chatId) {
         const curStack = chat.undoStack || [];
         const sliced = chat.exchanges.slice(-1);
         const last = sliced.length ? sliced[0] : null;
-    
+
         if (last) {
             const data = {
                 ...chat,
                 lastActivity: Date.now(),
                 exchanges: newExchanges,
-                undoStack: [...curStack, last ]
+                undoStack: [...curStack, last]
             };
 
             const updated = await updateChat(chat.owner, chat._id, data);
 
             if (!updated) {
-                throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+                throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound,
                     `Failed to update undo operation for chat ${chatId} for profile ${profileId}`,
                     "Specified chat was not found"
                 )
@@ -265,7 +265,7 @@ async function redoPreviousExchange(profileId, chatId) {
         const chat = (await chatService.findChat(profileId, chatId))[0]._doc;
 
         if (!chat) {
-            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+            throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound,
                 `Unable to find chat ${chatId} for profile ${profileId}`,
                 "Specified chat was not found"
             );
@@ -275,7 +275,7 @@ async function redoPreviousExchange(profileId, chatId) {
         const curExchanges = chat.exchanges || [];
         const sliced = chat.undoStack.slice(-1);
         const last = sliced.length ? sliced[0] : null;
-    
+
         if (last) {
             const data = {
                 ...chat,
@@ -287,7 +287,7 @@ async function redoPreviousExchange(profileId, chatId) {
             const updated = await updateChat(chat.owner, chat._id, data);
 
             if (!updated) {
-                throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound, 
+                throw errorUtil.error(404, errorUtil.errorCodes.chatNotFound,
                     `Failed to update redo operation for chat ${chatId} for profile ${profileId}`,
                     "Specified chat was not found"
                 )
@@ -312,8 +312,8 @@ async function performIdleChatPurge() {
     const cutoff = Date.now() - config.idleChatLife * 60 * 1000;
 
     try {
-        const count = await Chat.deleteMany({ type: "temp", lastActivity: { $lte: cutoff }});
-        
+        const count = await Chat.deleteMany({ type: "temp", lastActivity: { $lte: cutoff } });
+
         if (count.deletedCount > 0) {
             logger.debug(`Purge deleted ${count.deletedCount} chats`);
         }
@@ -322,7 +322,54 @@ async function performIdleChatPurge() {
     }
 }
 
-const chatService = {createChat, fetchChatsAbridged, findChat, updateChat, deleteChat, 
-    applyExchange, undoPreviousExchange, redoPreviousExchange, performIdleChatPurge };
+/**
+ * Generates file name for a chat for export
+ */
+function exportFilename(chatId, name) {
+    let sanitized = name?.replace(/[<>:"/\\|?*]+/g, '_').trim() || "";
+    sanitized = sanitized.substring(0, 64);
+
+    return `${sanitized}_${chatId}.json`;
+};
+
+/**
+ * Using an array of chat identifiers package the chats
+ * @param {string} profileId 
+ * @param {array} selection 
+ * @returns array of chats packaged for export
+ */
+async function fetchExportData(profileId, selection) {
+    const output = [];
+
+    for (const chatId of selection) {
+        const chat = await findChat(profileId, chatId);
+
+        if (chat.length) {
+            const id = chat[0]._id;
+            const filename = exportFilename(chatId, chat[0].name);
+            const data = JSON.stringify(chat[0]);
+            output.push({ id, filename, data });
+        }
+    };
+
+    return output;
+}
+
+/**
+ * Using an array of chat identifier remove them
+ * @param {string} profileId 
+ * @param {array} chatList 
+ */
+async function purgeChats(profileId, chatList) {
+    for (const chatId of chatList) {
+        await deleteChat(profileId, chatId);
+    }
+}
+
+const chatService = {
+    createChat, fetchChatsAbridged, findChat, updateChat, deleteChat,
+    applyExchange, undoPreviousExchange, redoPreviousExchange, performIdleChatPurge,
+    fetchExportData, purgeChats
+};
 
 export default chatService;
