@@ -20,7 +20,14 @@ import apiLoginRoutes from "./routes/apiLoginRoutes.js";
 import apiTemplateRoutes from "./routes/apiTemplateRoutes.js";
 
 const app = express();
-app.use(cors({ origin: config.webAppSite, credentials: true }));
+
+const corsOptions = {
+    origin: config.webAppSite,
+    credentials: true,
+    exposedHeaders: ['Content-Disposition'],
+};
+
+app.use(cors(corsOptions));
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
