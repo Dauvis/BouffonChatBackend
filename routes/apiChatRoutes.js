@@ -21,7 +21,7 @@ router.post("/api/v1/chat", authMiddleware, async (req, res) => {
 
         if (!tone?.trim())
         {
-            errorUtil.response(res, 400, errorUtil.errorCodes.validation, "Chat requrires a tone");
+            errorUtil.response(res, 400, errorUtil.errorCodes.validation, "Chat requrires a persona");
             return;
         }
 
