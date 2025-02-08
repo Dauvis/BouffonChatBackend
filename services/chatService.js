@@ -342,12 +342,23 @@ async function fetchExportData(profileId, selection) {
     const output = [];
 
     for (const chatId of selection) {
-        const chat = await findChat(profileId, chatId);
+        const chats = await findChat(profileId, chatId);
 
-        if (chat.length) {
-            const id = chat[0]._id;
-            const filename = exportFilename(chatId, chat[0].name);
-            const data = JSON.stringify(chat[0]);
+        if (chats.length) {
+            const chat = chats[0].toObject();
+            const id = chat._id;
+            const filename = exportFilename(chatId, chat.name);
+
+            const cleanChat = { ...chat };
+            delete cleanChat._id;
+            delete cleanChat.owner;
+            delete cleanChat.type;
+
+            for (const exchange of cleanChat.exchanges) {
+                delete exchange._id;
+            }
+
+            const data = JSON.stringify(cleanChat);
             output.push({ id, filename, data });
         }
     };
@@ -376,6 +387,7 @@ async function importChat(profileId, chat) {
     const modifiedChat = { ...chat };
     delete modifiedChat._id;
     modifiedChat.owner = profileId;
+    modifiedChat.type = "archived";
 
     for (const exchange of modifiedChat.exchanges) {
         delete exchange._id;
