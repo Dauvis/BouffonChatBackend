@@ -14,6 +14,7 @@ async function createChat(profileId, chatParameters) {
     try {
         const modelId = chatParameters.model || systemMessageService.defaultModel();
         const model = modelUtil.find(modelId);
+        const parameters = systemMessageService.getToneParameters(chatParameters.tone);
 
         // doing it this way to mitigate shenanigans
         const newChatData = {
@@ -24,6 +25,8 @@ async function createChat(profileId, chatParameters) {
             instructions: model.devMsg ? chatParameters.instructions : "",
             notes: model.devMsg ? chatParameters.notes : "",
             tokens: 0,
+            temperature: parameters.temperature,
+            topP: parameters.topP,
             model: modelId,
             systemMessage: model.devMsg ?
                 systemMessageService.buildSystemMessage(chatParameters.tone, chatParameters.instructions, chatParameters.notes) :

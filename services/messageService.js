@@ -22,7 +22,8 @@ async function sendMessage(profileId, chatId, userMessage) {
     const chat = chats[0];
 
     if (isStandardGPT(chat.model)) {
-        const { assistantMessage, tokens } = await messageServiceGPT.sendMessage(chat.model, userMessage, chat.systemMessage, chat.exchanges);
+        const { assistantMessage, tokens } = await messageServiceGPT.sendMessage(chat.model, userMessage, 
+            chat.systemMessage, chat.exchanges, chat.temperature, chat.topP);
         const exchangeId = await chatService.applyExchange(chat, tokens, userMessage, assistantMessage, null);
         return { assistantMessage, tokens, exchangeId }
     } else if (isReasoningGPT(chat.model)) {

@@ -14,6 +14,19 @@ function defaultTone() {
     return systemMessageData.defaultTone;
 }
 
+function getToneParameters(tone) {
+    const toneInstructions = systemMessageData.toneInstructions[tone] || systemMessageData.toneInstructions[systemMessageData.defaultTone] || '';
+
+    if (!toneInstructions) {
+        throw errorUtil.error(500, errorUtil.errorCodes.internalError,
+            `Unable to find instructions for tone ${tone}`,
+            "Internal error creating chat"
+        );
+    }
+
+    return { temperature: toneInstructions.temperature, topP: toneInstructions.topP };
+}
+
 function buildSystemMessage(tone, instructions, notes) {
     let messageParts = [];
 
@@ -28,7 +41,7 @@ function buildSystemMessage(tone, instructions, notes) {
 
     messageParts.push(systemMessageData.header);
     messageParts.push(systemMessageData.toneOpening);
-    messageParts.push(toneInstructions);
+    messageParts.push(toneInstructions.directions);
     messageParts.push(systemMessageData.toneClosing);
 
     if (instructions?.trim()) {
@@ -61,6 +74,6 @@ function buildSystemMessage(tone, instructions, notes) {
     return messageParts.join('');
 }
 
-const systemMessageService = { getToneOptionList, defaultModel, buildSystemMessage, defaultTone };
+const systemMessageService = { getToneOptionList, defaultModel, buildSystemMessage, defaultTone, getToneParameters };
 
 export default systemMessageService;

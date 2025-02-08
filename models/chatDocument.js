@@ -14,6 +14,8 @@ const ChatSchema = new Schema({
     instructions: { type: String, default: '' },
     notes: { type: String, default: '' },
     tokens: { type: Number, required: true },
+    temperature: { type: Number, required: true, default: 0.5 },
+    topP: { type: Number, required: true, default: 0.5 },
     model: { type: String, required: true },
     systemMessage: { type: String, required: true },
     lastActivity: { type: Date, default: Date.now, index: true },

@@ -10,7 +10,7 @@ function apiMessage(role, content) {
     return { role, content}
 }
 
-async function sendMessage(model, userMessage, systemMessage, exchanges) {
+async function sendMessage(model, userMessage, systemMessage, exchanges, temperature = 0.5, topP = 0.5) {
     const messageList = systemMessage ? [ apiMessage("developer", systemMessage) ] : [];
 
     exchanges.forEach(element => {
@@ -23,7 +23,9 @@ async function sendMessage(model, userMessage, systemMessage, exchanges) {
     try {
         const response = await openai.chat.completions.create({
             model,
-            messages: messageList
+            messages: messageList,
+            temperature,
+            top_p: topP,
         });
     
         const assistantMessage = response.choices[0].message.content.trim();
