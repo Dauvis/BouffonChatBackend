@@ -7,7 +7,7 @@ function find(modelId) {
 function modelTokenLimit(model) {
     return (
         (model === "gpt-4o" || model === "gpt-4o-mini") ? 25000 :
-        (model === "o1-preview" || model === "o1-mini") ? 5000 : 
+        (model === "o1-preview" || model === "o1-mini") ? 12500 : 
         0);
 }
 
