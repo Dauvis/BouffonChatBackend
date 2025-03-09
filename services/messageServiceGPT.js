@@ -31,7 +31,7 @@ async function sendMessage(model, userMessage, systemMessage, exchanges, tempera
         }
 
         if (topP) {
-            options.topP = topP;
+            options.top_p = topP;
         }
 
         const response = await openai.chat.completions.create(options);
